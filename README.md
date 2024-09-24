@@ -1,0 +1,1 @@
+# plugins-league-table-lite
