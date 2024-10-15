@@ -1,9 +1,9 @@
 === League Table - WordPress Table Plugin ===
 Contributors: DAEXT
-Tags: table, standings, ladder, leaderboard, ranking, sortable table, statistics, table plugin, spreadsheet, data, table builder, tables
+Tags: table, table builder, tables, datatable, standings
 Donate link: https://daext.com
 Requires at least: 4.6
-Tested up to: 6.5
+Tested up to: 6.6.2
 Requires PHP: 7.2
 Stable tag: 1.16
 License: GPLv3
