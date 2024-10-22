@@ -77,7 +77,7 @@ class Daextletal_Shared {
 		load_plugin_textdomain( 'league-table-lite', false, 'league-table-lite/lang/' );
 
 		$this->data['slug'] = 'daextletal';
-		$this->data['ver']  = '1.16';
+		$this->data['ver']  = '1.17';
 		$this->data['dir']  = substr( plugin_dir_path( __FILE__ ), 0, -7 );
 		$this->data['url']  = substr( plugin_dir_url( __FILE__ ), 0, -7 );
 
@@ -86,6 +86,9 @@ class Daextletal_Shared {
 
 			// Database Version ---------------------------------------------------------------------------------------.
 			$this->get( 'slug' ) . '_database_version'   => '0',
+
+			// Options Version ----------------------------------------------------------------------------------------.
+			$this->get( 'slug' ) . '_options_version'    => '0',
 
 			// General ------------------------------------------------------------------------------------------------.
 			$this->get( 'slug' ) . '_tables_menu_capability' => 'manage_options',

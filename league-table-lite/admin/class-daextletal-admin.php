@@ -449,14 +449,22 @@ class Daextletal_Admin {
 	 *
 	 * @return void
 	 */
-	static private function ac_initialize_options() {
+	public static function ac_initialize_options() {
 
-		// Assign an instance of Daextletal_Shared.
-		$shared = Daextletal_Shared::get_instance();
-		
-		foreach ( $shared->get( 'options' ) as $key => $value ) {
-			add_option( $key, $value );
+		if ( intval( get_option( 'daextletal_options_version' ), 10 ) < 1 ) {
+
+			// Assign an instance of Daextletal_Shared.
+			$shared = Daextletal_Shared::get_instance();
+
+			foreach ( $shared->get( 'options' ) as $key => $value ) {
+				add_option( $key, $value );
+			}
+
+			// Update options version.
+			update_option( 'daextletal_options_version', '1' );
+
 		}
+
 	}
 
 	/**
@@ -464,7 +472,7 @@ class Daextletal_Admin {
 	 *
 	 * @return void
 	 */
-	static private function ac_create_database_tables() {
+	public static function ac_create_database_tables() {
 
 		// Check database version and create the database.
 		if ( intval( get_option( 'daextletal_database_version' ), 10 ) < 2 ) {
@@ -577,7 +585,7 @@ class Daextletal_Admin {
 			dbDelta( $sql );
 
 			// Update database version.
-			update_option( 'daextletal_database_version', '1' );
+			update_option( 'daextletal_database_version', '2' );
 
 		}
 	}

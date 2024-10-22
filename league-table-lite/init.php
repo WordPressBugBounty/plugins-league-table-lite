@@ -2,7 +2,7 @@
 /**
  * Plugin Name: League Table
  * Description: Generates tables in your WordPress blog. (Lite version)
- * Version: 1.16
+ * Version: 1.17
  * Author: DAEXT
  * Author URI: https://daext.com
  * Text Domain: league-table-lite
@@ -23,26 +23,26 @@ require_once plugin_dir_path( __FILE__ ) . 'public/class-daextletal-public.php';
 add_action( 'plugins_loaded', array( 'Daextletal_Public', 'get_instance' ) );
 
 // Admin.
-if ( is_admin() ) {
+require_once plugin_dir_path( __FILE__ ) . 'admin/class-daextletal-admin.php';
 
-	require_once( plugin_dir_path( __FILE__ ) . 'admin/class-daextletal-admin.php' );
-
-	// If this is not an AJAX request, create a new singleton instance of the admin class.
-	if(! defined( 'DOING_AJAX' ) || ! DOING_AJAX ){
-		add_action( 'plugins_loaded', array( 'Daextletal_Admin', 'get_instance' ) );
-	}
-
-	// Activate the plugin using only the class static methods.
-	register_activation_hook( __FILE__, array( 'Daextletal_Admin', 'ac_activate' ) );
-
+// If it's the admin area and this is not an AJAX request, create a new singleton instance of the admin class.
+if ( is_admin() && ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX ) ) {
+	add_action( 'plugins_loaded', array( 'daextletal_Admin', 'get_instance' ) );
 }
 
-// Ajax.
+// Activate.
+register_activation_hook( __FILE__, array( 'Daextletal_Admin', 'ac_activate' ) );
+
+// Update the plugin db tables and options if they are not up-to-date.
+Daextletal_Admin::ac_create_database_tables();
+Daextletal_Admin::ac_initialize_options();
+
+// Register AJAX actions.
 if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
 
 	// Admin.
 	require_once plugin_dir_path( __FILE__ ) . 'class-daextletal-ajax.php';
-	add_action( 'plugins_loaded', array( 'Daextletal_Ajax', 'get_instance' ) );
+	add_action( 'plugins_loaded', array( 'daextletal_Ajax', 'get_instance' ) );
 
 }
 
@@ -54,7 +54,7 @@ if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
  * @return mixed
  */
 function daextletal_customize_action_links( $actions ) {
-	$actions[] = '<a href="https://daext.com/league-table/">' . esc_html__( 'Buy the Pro Version', 'league-table-lite' ) . '</a>';
+	$actions[] = '<a href="https://daext.com/league-table/" target="_blank">' . esc_html__( 'Buy the Pro Version', 'league-table-lite' ) . '</a>';
 	return $actions;
 }
 add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'daextletal_customize_action_links' );
