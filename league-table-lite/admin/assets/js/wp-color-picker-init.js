@@ -1,4 +1,4 @@
-/*
+/**
  * Initialization of the wp color picker.
  *
  * @package league-table-lite

@@ -32,18 +32,18 @@ class Daextletal_Admin {
 	private $screen_id_tables = null;
 
 	/**
-	 * The screen id for the help menu.
+	 * The screen id of the "Tools" menu.
 	 *
-	 * @var string
+	 * @var null
 	 */
-	private $screen_id_help = null;
+	private $screen_id_tools = null;
 
 	/**
-	 * The screen id for the pro version menu.
+	 * The screen id of the "Maintenance" menu.
 	 *
-	 * @var string
+	 * @var null
 	 */
-	private $screen_id_pro_version = null;
+	private $screen_id_maintenance = null;
 
 	/**
 	 * The screen id for the options menu.
@@ -51,6 +51,13 @@ class Daextletal_Admin {
 	 * @var string
 	 */
 	private $screen_id_options = null;
+
+	/**
+	 * Instance of the class used to generate the back-end menus.
+	 *
+	 * @var null
+	 */
+	private $menu_elements = null;
 
 	/**
 	 * The constructor.
@@ -67,14 +74,73 @@ class Daextletal_Admin {
 		// Add the admin menu.
 		add_action( 'admin_menu', array( $this, 'me_add_admin_menu' ) );
 
-		// Load the options API registrations and callbacks.
-		add_action( 'admin_init', array( $this, 'op_register_options' ) );
-
 		// This hook is triggered during the creation of a new blog.
 		add_action( 'wpmu_new_blog', array( $this, 'new_blog_create_options_and_tables' ), 10, 6 );
 
 		// This hook is triggered during the deletion of a blog.
 		add_action( 'delete_blog', array( $this, 'delete_blog_delete_options_and_tables' ), 10, 1 );
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce non-necessary for menu selection.
+		$page_query_param = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : null;
+
+		// Require and instantiate the class used to register the menu options.
+		if ( null !== $page_query_param ) {
+
+			$config = array(
+				'admin_toolbar' => array(
+					'items'      => array(
+						array(
+							'link_text' => __( 'Tables', 'league-table-lite' ),
+							'link_url'  => admin_url( 'admin.php?page=daextletal-tables' ),
+							'icon'      => 'list',
+							'menu_slug' => 'daextletal-table',
+						),
+						array(
+							'link_text' => __( 'Tools', 'league-table-lite' ),
+							'link_url'  => admin_url( 'admin.php?page=daextletal-tools' ),
+							'icon'      => 'tool-02',
+							'menu_slug' => 'daextletal-tool',
+						),
+						array(
+							'link_text' => __( 'Maintenance', 'league-table-lite' ),
+							'link_url'  => admin_url( 'admin.php?page=daextletal-maintenance' ),
+							'icon'      => 'settings-01',
+							'menu_slug' => 'daextletal-maintenance',
+						),
+					),
+					'more_items' => array(
+						array(
+							'link_text' => __( 'Options', 'league-table-lite' ),
+							'link_url'  => admin_url( 'admin.php?page=daextletal-options' ),
+							'pro_badge' => false,
+						),
+					),
+				),
+			);
+
+			// The parent class.
+			require_once $this->shared->get( 'dir' ) . 'admin/inc/menu/class-daextletal-menu-elements.php';
+
+			// Use the correct child class based on the page query parameter.
+			if ( 'daextletal-tables' === $page_query_param ) {
+				require_once $this->shared->get( 'dir' ) . 'admin/inc/menu/child/class-daextletal-tables-menu-elements.php';
+				$this->menu_elements = new Daextletal_Tables_Menu_Elements( $this->shared, $page_query_param, $config );
+			}
+			if ( 'daextletal-tools' === $page_query_param ) {
+				require_once $this->shared->get( 'dir' ) . 'admin/inc/menu/child/class-daextletal-tools-menu-elements.php';
+				$this->menu_elements = new Daextletal_Tools_Menu_Elements( $this->shared, $page_query_param, $config );
+			}
+			if ( 'daextletal-maintenance' === $page_query_param ) {
+				require_once $this->shared->get( 'dir' ) . 'admin/inc/menu/child/class-daextletal-maintenance-menu-elements.php';
+				$this->menu_elements = new Daextletal_Maintenance_Menu_Elements( $this->shared, $page_query_param, $config );
+			}
+			if ( 'daextletal-options' === $page_query_param ) {
+				require_once $this->shared->get( 'dir' ) . 'admin/inc/menu/child/class-daextletal-options-menu-elements.php';
+				$this->menu_elements = new Daextletal_Options_Menu_Elements( $this->shared, $page_query_param, $config );
+			}
+
+		}
+
 	}
 
 	/**
@@ -103,6 +169,8 @@ class Daextletal_Admin {
 		// Menu tables.
 		if ( $screen->id === $this->screen_id_tables ) {
 
+			wp_enqueue_style( $this->shared->get( 'slug' ) . '-framework-menu', $this->shared->get( 'url' ) . 'admin/assets/css/framework-menu/main.css', array(), $this->shared->get( 'ver' ) );
+
 			// jQuery UI Dialog.
 			wp_enqueue_style(
 				$this->shared->get( 'slug' ) . '-jquery-ui-dialog',
@@ -110,18 +178,9 @@ class Daextletal_Admin {
 				array(),
 				$this->shared->get( 'ver' )
 			);
-			wp_enqueue_style(
-				$this->shared->get( 'slug' ) . '-jquery-ui-dialog-custom',
-				$this->shared->get( 'url' ) . 'admin/assets/css/jquery-ui-dialog-custom.css',
-				array(),
-				$this->shared->get( 'ver' )
-			);
 
-			wp_enqueue_style( 'wp-color-picker' );
-			wp_enqueue_style( $this->shared->get( 'slug' ) . '-framework-menu', $this->shared->get( 'url' ) . 'admin/assets/css/framework/menu.css', array(), $this->shared->get( 'ver' ) );
-			wp_enqueue_style( $this->shared->get( 'slug' ) . '-menu-tables', $this->shared->get( 'url' ) . 'admin/assets/css/menu-tables.css', array(), $this->shared->get( 'ver' ) );
-			wp_enqueue_style( $this->shared->get( 'slug' ) . '-jquery-ui-tooltip', $this->shared->get( 'url' ) . 'admin/assets/css/jquery-ui-tooltip.css', array(), $this->shared->get( 'ver' ) );
 			wp_enqueue_style( $this->shared->get( 'slug' ) . '-handsontable-full', $this->shared->get( 'url' ) . 'admin/assets/inc/handsontable/handsontable.full.min.css', array(), $this->shared->get( 'ver' ) );
+			wp_enqueue_style( 'wp-color-picker' );
 
 			// Select2.
 			wp_enqueue_style(
@@ -130,53 +189,43 @@ class Daextletal_Admin {
 				array(),
 				$this->shared->get( 'ver' )
 			);
+
+		}
+
+		// Menu Tools.
+		if ( $screen->id === $this->screen_id_tools ) {
+
+			wp_enqueue_style( $this->shared->get( 'slug' ) . '-framework-menu', $this->shared->get( 'url' ) . 'admin/assets/css/framework-menu/main.css', array(), $this->shared->get( 'ver' ) );
+
+		}
+
+		// Menu Maintenance.
+		if ( $screen->id === $this->screen_id_maintenance ) {
+
+			wp_enqueue_style( $this->shared->get( 'slug' ) . '-framework-menu', $this->shared->get( 'url' ) . 'admin/assets/css/framework-menu/main.css', array(), $this->shared->get( 'ver' ) );
+
+			// Select2.
 			wp_enqueue_style(
-				$this->shared->get( 'slug' ) . '-select2-custom',
-				$this->shared->get( 'url' ) . 'admin/assets/css/select2-custom.css',
+				$this->shared->get( 'slug' ) . '-select2',
+				$this->shared->get( 'url' ) . 'admin/assets/inc/select2/css/select2.min.css',
+				array(),
+				$this->shared->get( 'ver' )
+			);
+
+			// jQuery UI Dialog.
+			wp_enqueue_style(
+				$this->shared->get( 'slug' ) . '-jquery-ui-dialog',
+				$this->shared->get( 'url' ) . 'admin/assets/css/jquery-ui-dialog.css',
 				array(),
 				$this->shared->get( 'ver' )
 			);
 
 		}
 
-		// Menu help.
-		if ( $screen->id === $this->screen_id_help ) {
-			wp_enqueue_style(
-				$this->shared->get( 'slug' ) . '-menu-help',
-				$this->shared->get( 'url' ) . 'admin/assets/css/menu-help.css',
-				array(),
-				$this->shared->get( 'ver' )
-			);
-		}
-
-		// Menu pro version.
-		if ( $screen->id === $this->screen_id_pro_version ) {
-			wp_enqueue_style(
-				$this->shared->get( 'slug' ) . '-menu-pro-version',
-				$this->shared->get( 'url' ) . 'admin/assets/css/menu-pro-version.css',
-				array(),
-				$this->shared->get( 'ver' )
-			);
-		}
-
-		// Menu options.
+		// Menu Options.
 		if ( $screen->id === $this->screen_id_options ) {
-			wp_enqueue_style( $this->shared->get( 'slug' ) . '-framework-options', $this->shared->get( 'url' ) . 'admin/assets/css/framework/options.css', array(), $this->shared->get( 'ver' ) );
-			wp_enqueue_style( $this->shared->get( 'slug' ) . '-jquery-ui-tooltip', $this->shared->get( 'url' ) . 'admin/assets/css/jquery-ui-tooltip.css', array(), $this->shared->get( 'ver' ) );
 
-			// Select2.
-			wp_enqueue_style(
-				$this->shared->get( 'slug' ) . '-select2',
-				$this->shared->get( 'url' ) . 'admin/assets/inc/select2/css/select2.min.css',
-				array(),
-				$this->shared->get( 'ver' )
-			);
-			wp_enqueue_style(
-				$this->shared->get( 'slug' ) . '-select2-custom',
-				$this->shared->get( 'url' ) . 'admin/assets/css/select2-custom.css',
-				array(),
-				$this->shared->get( 'ver' )
-			);
+			wp_enqueue_style( $this->shared->get( 'slug' ) . '-framework-menu', $this->shared->get( 'url' ) . 'admin/assets/css/framework-menu/main.css', array( 'wp-components' ), $this->shared->get( 'ver' ) );
 
 		}
 	}
@@ -190,11 +239,21 @@ class Daextletal_Admin {
 
 		$screen = get_current_screen();
 
+		$wp_localize_script_data = array(
+			'deleteText'         => esc_html__( 'Delete', 'league-table-lite' ),
+			'cancelText'         => esc_html__( 'Cancel', 'league-table-lite' ),
+			'chooseAnOptionText' => esc_html__( 'Choose an Option ...', 'league-table-lite' ),
+			'closeText'          => esc_html__( 'Close', 'league-table-lite' ),
+			'postText'           => esc_html__( 'Post', 'league-table-lite' ),
+			'itemsText'          => esc_html__( 'items', 'league-table-lite' ),
+			'dateTooltipText'    => esc_html__( 'The date of the feedback.', 'league-table-lite' ),
+			'ratingTooltipText'  => esc_html__( 'The rating received by the feedback.', 'league-table-lite' ),
+			'commentTooltipText' => esc_html__( 'The comment associated with the feedback.', 'league-table-lite' ),
+		);
+
 		// Menu tables.
 		if ( $screen->id === $this->screen_id_tables ) {
 
-			wp_enqueue_script( 'jquery-ui-tooltip' );
-			wp_enqueue_script( $this->shared->get( 'slug' ) . '-jquery-ui-tooltip-init', $this->shared->get( 'url' ) . 'admin/assets/js/jquery-ui-tooltip-init.js', array( 'jquery' ), $this->shared->get( 'ver' ), true );
 			wp_enqueue_script( $this->shared->get( 'slug' ) . '-handsontable-full', $this->shared->get( 'url' ) . 'admin/assets/inc/handsontable/handsontable.full.min.js', array( 'jquery' ), $this->shared->get( 'ver' ), true );
 			wp_enqueue_script( $this->shared->get( 'slug' ) . '-tables-menu-utility', $this->shared->get( 'url' ) . 'admin/assets/js/tables/utility.js', array( 'jquery', 'jquery-ui-dialog' ), $this->shared->get( 'ver' ), true );
 			wp_enqueue_script( $this->shared->get( 'slug' ) . '-tables-menu-context-menu', $this->shared->get( 'url' ) . 'admin/assets/js/tables/context-menu.js', array( 'jquery', 'jquery-ui-dialog', 'daextletal-tables-menu-utility' ), $this->shared->get( 'ver' ), true );
@@ -277,9 +336,9 @@ class Daextletal_Admin {
 					'insert_column_right'                  => wp_strip_all_tags( __( 'Insert Column Right', 'league-table-lite' ) ),
 					'remove_row'                           => wp_strip_all_tags( __( 'Remove Row', 'league-table-lite' ) ),
 					'remove_column'                        => wp_strip_all_tags( __( 'Remove Column', 'league-table-lite' ) ),
-					'copy_to_system_clipboard'             => wp_strip_all_tags( __( 'Copy to System Clipboard', 'league-table-lite' ) ),
-					'cut_in_system_clipboard'              => wp_strip_all_tags( __( 'Cut in System Clipboard', 'league-table-lite' ) ),
-					'paste_from_system_clipboard'          => wp_strip_all_tags( __( 'Paste from System Clipboard', 'league-table-lite' ) ),
+					'copy_data'                            => wp_strip_all_tags( __( 'Copy Data', 'league-table' ) ),
+					'cut_data'                             => wp_strip_all_tags( __( 'Cut Data', 'league-table' ) ),
+					'paste_data'                           => wp_strip_all_tags( __( 'Paste Data', 'league-table' ) ),
 					'copy_to_spreadsheet_clipboard'        => wp_strip_all_tags( __( 'Copy to Spreadsheet Clipboard', 'league-table-lite' ) ),
 					'paste_spreadsheet_clipboard_cell_data' => wp_strip_all_tags( __( 'Paste Spreadsheet Clipboard Cell Data', 'league-table-lite' ) ),
 					'paste_spreadsheet_clipboard_cell_properties' => wp_strip_all_tags( __( 'Paste Spreadsheet Clipboard Cell Properties', 'league-table-lite' ) ),
@@ -301,25 +360,116 @@ class Daextletal_Admin {
 			if ( false !== $initialization_script ) {
 				wp_add_inline_script( $this->shared->get( 'slug' ) . '-tables-menu-utility', $initialization_script, 'before' );
 			}
+
+			wp_enqueue_script( $this->shared->get( 'slug' ) . '-menu', $this->shared->get( 'url' ) . 'admin/assets/js/framework-menu/menu.js', array( 'jquery' ), $this->shared->get( 'ver' ), true );
+
 		}
 
-		// Menu options.
-		if ( $screen->id === $this->screen_id_options ) {
+		// Menu tools.
+		if ( $screen->id === $this->screen_id_tools ) {
+
+			wp_enqueue_script( $this->shared->get( 'slug' ) . '-menu', $this->shared->get( 'url' ) . 'admin/assets/js/framework-menu/menu.js', array( 'jquery' ), $this->shared->get( 'ver' ), true );
+
+		}
+
+		// Menu Maintenance.
+		if ( $screen->id === $this->screen_id_maintenance ) {
 
 			// Select2.
 			wp_enqueue_script(
 				$this->shared->get( 'slug' ) . '-select2',
 				$this->shared->get( 'url' ) . 'admin/assets/inc/select2/js/select2.min.js',
-				'jquery',
+				array( 'jquery' ),
 				$this->shared->get( 'ver' ),
 				true
 			);
 
-			wp_enqueue_script( 'jquery-ui-tooltip' );
-			wp_enqueue_script( $this->shared->get( 'slug' ) . '-jquery-ui-tooltip-init', $this->shared->get( 'url' ) . 'admin/assets/js/jquery-ui-tooltip-init.js', array( 'jquery' ), $this->shared->get( 'ver' ), true );
-			wp_enqueue_script( $this->shared->get( 'slug' ) . '-menu-options', $this->shared->get( 'url' ) . 'admin/assets/js/menu-options.js', array( 'jquery', $this->shared->get( 'slug' ) . '-select2' ), $this->shared->get( 'ver' ), true );
+			wp_enqueue_script( $this->shared->get( 'slug' ) . '-menu', $this->shared->get( 'url' ) . 'admin/assets/js/framework-menu/menu.js', array( 'jquery' ), $this->shared->get( 'ver' ), true );
+
+			// Maintenance Menu.
+			wp_enqueue_script(
+				$this->shared->get( 'slug' ) . '-menu-maintenance',
+				$this->shared->get( 'url' ) . 'admin/assets/js/menu-maintenance.js',
+				array( 'jquery', 'jquery-ui-dialog', $this->shared->get( 'slug' ) . '-select2' ),
+				$this->shared->get( 'ver' ),
+				true
+			);
+			wp_localize_script(
+				$this->shared->get( 'slug' ) . '-menu-maintenance',
+				'objectL10n',
+				$wp_localize_script_data
+			);
 
 		}
+
+		// Menu Options.
+		if ( $screen->id === $this->screen_id_options ) {
+
+			// Store the JavaScript parameters in the window.DAEXTLETAL_PARAMETERS object.
+			$initialization_script  = 'window.DAEXTLETAL_PARAMETERS = {';
+			$initialization_script .= 'options_configuration_pages: ' . wp_json_encode( $this->shared->menu_options_configuration() );
+			$initialization_script .= '};';
+
+			wp_enqueue_script(
+				$this->shared->get( 'slug' ) . '-menu-options',
+				$this->shared->get( 'url' ) . 'admin/react/options-menu/build/index.js',
+				array( 'wp-element', 'wp-api-fetch', 'wp-i18n', 'wp-components' ),
+				$this->shared->get( 'ver' ),
+				true
+			);
+
+			wp_add_inline_script( $this->shared->get( 'slug' ) . '-menu-options', $initialization_script, 'before' );
+
+			wp_enqueue_script( $this->shared->get( 'slug' ) . '-menu', $this->shared->get( 'url' ) . 'admin/assets/js/framework-menu/menu.js', array( 'jquery' ), $this->shared->get( 'ver' ), true );
+
+		}
+
+		// Enqueue scripts in all the post types of the post editor.
+		$args               = array(
+			'show_ui' => true,
+		);
+		$post_types_with_ui = get_post_types( $args );
+		unset( $post_types_with_ui['attachment'] );
+
+		if ( in_array( $screen->id, $post_types_with_ui, true ) && current_user_can( get_option( $this->shared->get( 'slug' ) . '_tables_menu_capability' ) ) ) {
+
+			// Store the JavaScript parameters in the window.DAEXTLETAL_PARAMETERS object.
+			$this->shared->add_global_javascript_parameters( 'post' );
+
+			/**
+			 * When the editor file is loaded (only in the post editor) add the names and IDs of all the restrictions as
+			 * json data in a property of the window.DAEXTREBL_PARAMETERS object.
+			 *
+			 * These data are used to populate the "Restrictions" selector available in the inspector of all the blocks.
+			 */
+			global $wpdb;
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			$table_a = $wpdb->get_results(
+				"SELECT id, name FROM {$wpdb->prefix}daextletal_table WHERE temporary = 0 ORDER BY id DESC",
+				ARRAY_A
+			);
+
+			$table_a_alt   = array();
+			$table_a_alt[] = array(
+				'value' => '0',
+				'label' => __( 'None', 'league-table-lite' ),
+			);
+			foreach ( $table_a as $key => $value ) {
+				$table_a_alt[] = array(
+					'value' => intval( $value['id'], 10 ),
+					'label' => stripslashes( $value['name'] ),
+				);
+			}
+
+			// Store the JavaScript parameters in the window.DAEXTREBL_PARAMETERS object.
+			$initialization_script  = 'window.DAEXTLETAL_PARAMETERS = {';
+			$initialization_script .= 'tables: ' . wp_json_encode( $table_a_alt );
+			$initialization_script .= '};';
+			wp_add_inline_script( $this->shared->get( 'slug' ) . '-editor-js', $initialization_script, 'before' );
+
+		}
+
 	}
 
 	/**
@@ -329,7 +479,7 @@ class Daextletal_Admin {
 	 *
 	 * @return void
 	 */
-	static public function ac_activate( $networkwide ) {
+	public static function ac_activate( $networkwide ) {
 
 		/**
 		 * Create options and tables for all the sites in the network.
@@ -451,7 +601,7 @@ class Daextletal_Admin {
 	 */
 	public static function ac_initialize_options() {
 
-		if ( intval( get_option( 'daextletal_options_version' ), 10 ) < 1 ) {
+		if ( intval( get_option( 'daextletal_options_version' ), 10 ) < 2 ) {
 
 			// Assign an instance of Daextletal_Shared.
 			$shared = Daextletal_Shared::get_instance();
@@ -461,7 +611,7 @@ class Daextletal_Admin {
 			}
 
 			// Update options version.
-			update_option( 'daextletal_options_version', '1' );
+			update_option( 'daextletal_options_version', '2' );
 
 		}
 
@@ -678,13 +828,38 @@ class Daextletal_Admin {
 	 */
 	public function me_add_admin_menu() {
 
+		$icon_svg = '<?xml version="1.0" encoding="UTF-8"?>
+		<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 40 40">
+		  <defs>
+		    <style>
+		      .st0 {
+		        fill: none;
+		        stroke: #98a3b3;
+		        stroke-miterlimit: 10;
+		        stroke-width: 2px;
+		      }
+		
+		      .st1 {
+		        fill: #98a3b3;
+		      }
+		
+		    </style>
+		  </defs>
+		  <g id="render">
+		    <path class="st1" d="M34,5H6c-1.7,0-3,1.3-3,3v24c0,1.7,1.3,3,3,3h28c1.7,0,3-1.3,3-3V8c0-1.7-1.3-3-3-3ZM6,7h28c.6,0,1,.4,1,1v4H5v-4c0-.6.4-1,1-1ZM27,14v5h-6v-5h6ZM19,19h-6v-5h6v5ZM11,19h-6v-5h6v5ZM11,21v5h-6v-5h6ZM13,21h6v5h-6v-5ZM19,28v5h-6v-5h6ZM21,28h6v5h-6v-5ZM21,26v-5h6v5h-6ZM29,21h6v5h-6v-5ZM29,19v-5h6v5h-6ZM5,32v-4h6v5h-5c-.6,0-1-.4-1-1ZM34,33h-5v-5h6v4c0,.6-.4,1-1,1Z"/>
+		  </g>
+		</svg>';
+
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Base64 encoding is used to embed the SVG in the HTML.
+		$icon_svg = 'data:image/svg+xml;base64,' . base64_encode( $icon_svg );
+
 		add_menu_page(
 			esc_html__( 'LT', 'league-table-lite' ),
 			esc_html__( 'League Table', 'league-table-lite' ),
 			get_option( $this->shared->get( 'slug' ) . '_tables_menu_capability' ),
 			$this->shared->get( 'slug' ) . '-tables',
 			array( $this, 'me_display_menu_tables' ),
-			'dashicons-list-view'
+			$icon_svg
 		);
 
 		$this->screen_id_tables = add_submenu_page(
@@ -696,22 +871,22 @@ class Daextletal_Admin {
 			array( $this, 'me_display_menu_tables' )
 		);
 
-		$this->screen_id_help = add_submenu_page(
+		$this->screen_id_tools = add_submenu_page(
 			$this->shared->get( 'slug' ) . '-tables',
-			esc_html__( 'Help', 'league-table-lite' ),
-			esc_html__( 'Help', 'league-table-lite' ),
-			'manage_options',
-			$this->shared->get( 'slug' ) . '-help',
-			array( $this, 'me_display_menu_help' )
+			esc_html__( 'LT - Tools', 'league-table-lite' ),
+			esc_html__( 'Tools', 'league-table-lite' ),
+			get_option( $this->shared->get( 'slug' ) . '_tools_menu_capability' ),
+			$this->shared->get( 'slug' ) . '-tools',
+			array( $this, 'me_display_menu_tools' )
 		);
 
-		$this->screen_id_pro_version = add_submenu_page(
+		$this->screen_id_maintenance = add_submenu_page(
 			$this->shared->get( 'slug' ) . '-tables',
-			esc_html__( 'Pro Version', 'league-table-lite' ),
-			esc_html__( 'Pro Version', 'league-table-lite' ),
-			'manage_options',
-			$this->shared->get( 'slug' ) . '-pro-version',
-			array( $this, 'me_display_menu_pro_version' )
+			esc_html__( 'LT - Maintenance', 'league-table-lite' ),
+			esc_html__( 'Maintenance', 'league-table-lite' ),
+			get_option( $this->shared->get( 'slug' ) . '_maintenance_menu_capability' ),
+			$this->shared->get( 'slug' ) . '-maintenance',
+			array( $this, 'me_display_menu_maintenance' )
 		);
 
 		$this->screen_id_options = add_submenu_page(
@@ -734,21 +909,21 @@ class Daextletal_Admin {
 	}
 
 	/**
-	 * Includes the help view.
+	 * Includes the Tools view.
 	 *
 	 * @return void
 	 */
-	public function me_display_menu_help() {
-		include_once 'view/help.php';
+	public function me_display_menu_tools() {
+		include_once 'view/tools.php';
 	}
 
 	/**
-	 * Includes the pro version view.
+	 * Includes the Maintenance view.
 	 *
 	 * @return void
 	 */
-	public function me_display_menu_pro_version() {
-		include_once 'view/pro-version.php';
+	public function me_display_menu_maintenance() {
+		include_once 'view/maintenance.php';
 	}
 
 	/**
@@ -758,374 +933,6 @@ class Daextletal_Admin {
 	 */
 	public function me_display_menu_options() {
 		include_once 'view/options.php';
-	}
-
-	/**
-	 * Register options.
-	 *
-	 * @return void
-	 */
-	public function op_register_options() {
-
-		// Section general ----------------------------------------------------------.
-		add_settings_section(
-			'daextletal_general_settings_section',
-			null,
-			null,
-			'daextletal_general_options'
-		);
-
-		add_settings_field(
-			'tables_menu_capability',
-			esc_html__( 'Tables Menu Capability', 'league-table-lite' ),
-			array( $this, 'tables_menu_capability_callback' ),
-			'daextletal_general_options',
-			'daextletal_general_settings_section'
-		);
-
-		register_setting(
-			'daextletal_general_options',
-			'daextletal_tables_menu_capability',
-			'sanitize_key'
-		);
-
-		add_settings_field(
-			'general_javascript_file_url',
-			esc_html__( 'General JavaScript File URL', 'league-table-lite' ),
-			array( $this, 'general_javascript_file_url_callback' ),
-			'daextletal_general_options',
-			'daextletal_general_settings_section'
-		);
-
-		register_setting(
-			'daextletal_general_options',
-			'daextletal_general_javascript_file_url',
-			'esc_url_raw'
-		);
-
-		add_settings_field(
-			'general_styleshett_file_url',
-			esc_html__( 'General Stylesheet File URL', 'league-table-lite' ),
-			array( $this, 'general_stylesheet_file_url_callback' ),
-			'daextletal_general_options',
-			'daextletal_general_settings_section'
-		);
-
-		register_setting(
-			'daextletal_general_options',
-			'daextletal_general_stylesheet_file_url',
-			'esc_url_raw'
-		);
-
-		add_settings_field(
-			'tablesorter_library_url',
-			esc_html__( 'Tablesorter Library URL', 'league-table-lite' ),
-			array( $this, 'tablesorter_library_url_callback' ),
-			'daextletal_general_options',
-			'daextletal_general_settings_section'
-		);
-
-		register_setting(
-			'daextletal_general_options',
-			'daextletal_tablesorter_library_url',
-			'esc_url_raw'
-		);
-
-		add_settings_field(
-			'load_google_font_1',
-			esc_html__( 'Load Google Font 1', 'league-table-lite' ),
-			array( $this, 'load_google_font_1_callback' ),
-			'daextletal_general_options',
-			'daextletal_general_settings_section'
-		);
-
-		register_setting(
-			'daextletal_general_options',
-			'daextletal_load_google_font_1',
-			array( $this, 'load_google_font_1_validation' )
-		);
-
-		add_settings_field(
-			'load_google_font_2',
-			esc_html__( 'Load Google Font 2', 'league-table-lite' ),
-			array( $this, 'load_google_font_2_callback' ),
-			'daextletal_general_options',
-			'daextletal_general_settings_section'
-		);
-
-		register_setting(
-			'daextletal_general_options',
-			'daextletal_load_google_font_2',
-			array( $this, 'load_google_font_2_validation' )
-		);
-
-		add_settings_field(
-			'max_execution_time',
-			esc_html__( 'Max Execution Time', 'league-table-lite' ),
-			array( $this, 'max_execution_time_callback' ),
-			'daextletal_general_options',
-			'daextletal_general_settings_section'
-		);
-
-		register_setting(
-			'daextletal_general_options',
-			'daextletal_max_execution_time',
-			array( $this, 'max_execution_time_validation' )
-		);
-
-		add_settings_field(
-			'limit_shortcode_parsing',
-			esc_html__( 'Limit Shortcode Parsing', 'league-table-lite' ),
-			array( $this, 'limit_shortcode_parsing_callback' ),
-			'daextletal_general_options',
-			'daextletal_general_settings_section'
-		);
-
-		register_setting(
-			'daextletal_general_options',
-			'daextletal_limit_shortcode_parsing',
-			array( $this, 'limit_shortcode_parsing_validation' )
-		);
-
-		add_settings_field(
-			'verify_single_shortcode',
-			esc_html__( 'Verify Single Shortcode', 'league-table-lite' ),
-			array( $this, 'verify_single_shortcode_callback' ),
-			'daextletal_general_options',
-			'daextletal_general_settings_section'
-		);
-
-		register_setting(
-			'daextletal_general_options',
-			'daextletal_verify_single_shortcode',
-			array( $this, 'verify_single_shortcode_validation' )
-		);
-
-		add_settings_field(
-			'widget_text_shortcode',
-			esc_html__( 'Shortcode in Text Widget', 'league-table-lite' ),
-			array( $this, 'widget_text_shortcode_callback' ),
-			'daextletal_general_options',
-			'daextletal_general_settings_section'
-		);
-
-		register_setting(
-			'daextletal_general_options',
-			'daextletal_widget_text_shortcode',
-			array( $this, 'widget_text_shortcode_validation' )
-		);
-	}
-
-	// General --------------------------------------------------------------------------------------------------------.
-
-	/**
-	 * Tables Menu Capability option callback.
-	 *
-	 * @return void
-	 */
-	public function tables_menu_capability_callback() {
-
-		echo '<input autocomplete="off" type="text" id="daextletal-tables-menu-capability" name="daextletal_tables_menu_capability" class="regular-text" value="' . esc_attr( get_option( 'daextletal_tables_menu_capability' ) ) . '" />';
-		echo '<div class="help-icon" title="' . esc_attr__( 'The capability required to get access on the "Tables" menu.', 'league-table-lite' ) . '"></div>';
-	}
-
-	/**
-	 * General JavaScript File URL option callback.
-	 *
-	 * @return void
-	 */
-	public function general_javascript_file_url_callback() {
-
-		echo '<input autocomplete="off" type="text" id="daextletal-general-javascript-file-url" name="daextletal_general_javascript_file_url" class="regular-text" value="' . esc_attr( get_option( 'daextletal_general_javascript_file_url' ) ) . '" />';
-		echo '<div class="help-icon" title="' . esc_attr__( 'The URL where the general JavaScript file is located.', 'league-table-lite' ) . '"></div>';
-	}
-
-	/**
-	 * General Stylesheet File URL option callback.
-	 *
-	 * @return void
-	 */
-	public function general_stylesheet_file_url_callback() {
-
-		echo '<input autocomplete="off" type="text" id="daextletal-general-stylesheet-file-url" name="daextletal_general_stylesheet_file_url" class="regular-text" value="' . esc_attr( get_option( 'daextletal_general_stylesheet_file_url' ) ) . '" />';
-		echo '<div class="help-icon" title="' . esc_attr__( 'The URL where the general Stylesheet file is located.', 'league-table-lite' ) . '"></div>';
-	}
-
-	/**
-	 * Tablesorter Library URL option callback.
-	 *
-	 * @return void
-	 */
-	public function tablesorter_library_url_callback() {
-
-		echo '<input autocomplete="off" type="text" id="daextletal-tablesorter-library-url" name="daextletal_tablesorter_library_url" class="regular-text" value="' . esc_attr( get_option( 'daextletal_tablesorter_library_url' ) ) . '" />';
-		echo '<div class="help-icon" title="' . esc_attr__( 'The URL where the Tablesorter library is located.', 'league-table-lite' ) . '"></div>';
-	}
-
-	/**
-	 * Load Google Font 1 option callback.
-	 *
-	 * @return void
-	 */
-	public function load_google_font_1_callback() {
-
-		echo '<input autocomplete="off" type="text" id="daextletal-load-google-font-1" name="daextletal_load_google_font_1" class="regular-text" value="' . esc_attr( get_option( 'daextletal_load_google_font_1' ) ) . '" />';
-		echo '<div class="help-icon" title="' . esc_attr__( 'Enter the URL of a Google Font.', 'league-table-lite' ) . '"></div>';
-	}
-
-	/**
-	 * Load Google Font 1 validation.
-	 *
-	 * @param string $input The option value.
-	 *
-	 * @return string
-	 */
-	public function load_google_font_1_validation( $input ) {
-
-		if ( strlen( trim( $input ) ) > 0 ) {
-			$output = esc_url_raw( $input );
-		} else {
-			$output = '';
-		}
-
-		return $output;
-	}
-
-	/**
-	 * Load Google Font 2 option callback.
-	 *
-	 * @return void
-	 */
-	public function load_google_font_2_callback() {
-
-		echo '<input autocomplete="off" type="text" id="daextletal-load-google-font-2" name="daextletal_load_google_font_2" class="regular-text" value="' . esc_attr( get_option( 'daextletal_load_google_font_2' ) ) . '" />';
-		echo '<div class="help-icon" title="' . esc_attr__( 'Enter the URL of a Google Font.', 'league-table-lite' ) . '"></div>';
-	}
-
-	/**
-	 * Load Google Font 2 validation.
-	 *
-	 * @param string $input The option value.
-	 *
-	 * @return string
-	 */
-	public function load_google_font_2_validation( $input ) {
-
-		if ( strlen( trim( $input ) ) > 0 ) {
-			$output = esc_url_raw( $input );
-		} else {
-			$output = '';
-		}
-
-		return $output;
-	}
-
-	/**
-	 * Max Execution Time option callback.
-	 *
-	 * @return void
-	 */
-	public function max_execution_time_callback() {
-
-		echo '<input autocomplete="off" type="text" id="daextletal-max-execution-time" name="daextletal_max_execution_time" class="regular-text" value="' . esc_attr( get_option( 'daextletal_max_execution_time' ) ) . '" />';
-		echo '<div class="help-icon" title="' . esc_attr__( 'Please enter a number from 1 to 1000000. This value determines the maximum number of seconds allowed to execute the PHP scripts used by this plugin to alter or display the data of the tables.', 'league-table-lite' ) . '"></div>';
-	}
-
-	/**
-	 * Max Execution Time validation.
-	 *
-	 * @param string $input The option value.
-	 *
-	 * @return int
-	 */
-	public function max_execution_time_validation( $input ) {
-
-		if ( ! preg_match( $this->shared->digits_regex, $input ) || intval( $input, 10 ) < 1 || intval( $input, 10 ) > 1000000 ) {
-			add_settings_error( 'daextletal_max_execution_time', 'daextletal_max_execution_time', esc_html__( 'Please enter a number from 1 to 1000000 in the "Max Execution Time Value" option.', 'league-table-lite' ) );
-			$output = get_option( 'daextletal_max_execution_time' );
-		} else {
-			$output = $input;
-		}
-
-		return intval( $output, 10 );
-	}
-
-	/**
-	 * Limit Shortcode Parsing option callback.
-	 *
-	 * @return void
-	 */
-	public function limit_shortcode_parsing_callback() {
-
-		echo '<select id="daextletal-limit-shortcode-parsing" name="daextletal_limit_shortcode_parsing" class="daext-display-none">';
-		echo '<option ' . selected( intval( get_option( 'daextletal_limit_shortcode_parsing' ) ), 0, false ) . ' value="0">' . esc_html__( 'No', 'league-table-lite' ) . '</option>';
-		echo '<option ' . selected( intval( get_option( 'daextletal_limit_shortcode_parsing' ) ), 1, false ) . ' value="1">' . esc_html__( 'Yes', 'league-table-lite' ) . '</option>';
-		echo '</select>';
-		echo '<div class="help-icon" title="' . esc_attr__( 'With this option enabled the shortcodes generated with this plugin will be parsed only when the full content of single posts and pages is displayed.', 'league-table-lite' ) . '"></div>';
-	}
-
-	/**
-	 * Limit Shortcode Parsing validation.
-	 *
-	 * @param string $input The option value.
-	 *
-	 * @return string
-	 */
-	public function limit_shortcode_parsing_validation( $input ) {
-
-		return intval( $input, 10 ) === 1 ? '1' : '0';
-	}
-
-	/**
-	 * Verify Single Shortcode option callback.
-	 *
-	 * @return void
-	 */
-	public function verify_single_shortcode_callback() {
-
-		echo '<select id="daextletal-verify-single-shortcode" name="daextletal_verify_single_shortcode" class="daext-display-none">';
-		echo '<option ' . selected( intval( get_option( 'daextletal_verify_single_shortcode' ) ), 0, false ) . ' value="0">' . esc_html__( 'No', 'league-table-lite' ) . '</option>';
-		echo '<option ' . selected( intval( get_option( 'daextletal_verify_single_shortcode' ) ), 1, false ) . ' value="1">' . esc_html__( 'Yes', 'league-table-lite' ) . '</option>';
-		echo '</select>';
-		echo '<div class="help-icon" title="' . esc_attr__( 'With this option enabled the presence of a single application of the same shortcode is verified.', 'league-table-lite' ) . '"></div>';
-	}
-
-	/**
-	 * Verify Single Shortcode validation.
-	 *
-	 * @param string $input The option value.
-	 *
-	 * @return string
-	 */
-	public function verify_single_shortcode_validation( $input ) {
-
-		return intval( $input, 10 ) === 1 ? '1' : '0';
-	}
-
-	/**
-	 * Widget Text Shortcode option callback.
-	 *
-	 * @return void
-	 */
-	public function widget_text_shortcode_callback() {
-
-		echo '<select id="daextletal-widget-text-shortcode" name="daextletal_widget_text_shortcode" class="daext-display-none">';
-		echo '<option ' . selected( intval( get_option( 'daextletal_widget_text_shortcode' ) ), 0, false ) . ' value="0">' . esc_html__( 'No', 'league-table-lite' ) . '</option>';
-		echo '<option ' . selected( intval( get_option( 'daextletal_widget_text_shortcode' ) ), 1, false ) . ' value="1">' . esc_html__( 'Yes', 'league-table-lite' ) . '</option>';
-		echo '</select>';
-		echo '<div class="help-icon" title="' . esc_attr__( 'With this option enabled the shortcodes included inside text widgets will be parsed.', 'league-table-lite' ) . '"></div>';
-	}
-
-	/**
-	 * Widget Text Shortcode validation.
-	 *
-	 * @param string $input The option value.
-	 *
-	 * @return string
-	 */
-	public function widget_text_shortcode_validation( $input ) {
-
-		return intval( $input, 10 ) === 1 ? '1' : '0';
 	}
 
 	/**
@@ -1173,41 +980,4 @@ class Daextletal_Admin {
 		}
 	}
 
-	/**
-	 * Initialize the table data based on the defined table id, number of rows and number of columns
-	 *
-	 * @param int $table_id The table id.
-	 * @param int $number_of_rows The number of rows.
-	 * @param int $number_of_columns The number of columns.
-	 */
-	public function initialize_table_data( $table_id, $number_of_rows, $number_of_columns ) {
-
-		for ( $row_index = 0; $row_index < $number_of_rows; $row_index++ ) {
-
-			if ( 0 === $row_index ) {
-				$row_data = array();
-				for ( $i = 1; $i <= $number_of_columns; $i++ ) {
-					$row_data[] = __( 'Label', 'league-table-lite' ) . ' ' . $i;
-				}
-				$row_data_json = wp_json_encode( $row_data );
-				$this->shared->data_insert_record( $table_id, $row_index, $row_data_json );
-			} else {
-				$row_data      = array_fill( 0, $number_of_columns, 0 );
-				$row_data_json = wp_json_encode( $row_data );
-				$this->shared->data_insert_record( $table_id, $row_index, $row_data_json );
-			}
-		}
-	}
-
-	/**
-	 * Echo all the dismissible notices based on the values of the $notices array.
-	 *
-	 * @param array $notices The array of with class and text of the dismissible notices.
-	 */
-	public function dismissible_notice( $notices ) {
-
-		foreach ( $notices as $key => $notice ) {
-			echo '<div class="' . esc_attr( $notice['class'] ) . ' settings-error notice is-dismissible below-h2"><p>' . esc_html( $notice['message'] ) . '</p></div>';
-		}
-	}
 }

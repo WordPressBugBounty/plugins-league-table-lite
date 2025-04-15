@@ -1,10 +1,12 @@
 /**
- * This file is used to initialize the Tables menu.
+ * This file is used to initialize the tables area.
  *
  * @package league-table-lite
  */
 
 (function ($) {
+
+	'use strict';
 
 	// This object is used to save all the variable states of the menu.
 	window.DAEXTLETAL.states = {
@@ -14,6 +16,10 @@
 		cell_properties_message_timeout_handler: null,
 		table_message_timeout_handler: null,
 		tableToDelete: null,
+		copiedCellProperties: {
+			data: null,
+			source: null
+		},
 
 	};
 
@@ -33,7 +39,6 @@
 
 				window.DAEXTLETAL.utility.initialize_handsontable();
 				window.DAEXTLETAL.utility.initialize_select2();
-				window.DAEXTLETAL.utility.remove_border_last_element_daext_form_table();
 				window.DAEXTLETAL.utility.responsive_sidebar_container();
 				window.DAEXTLETAL.utility.disable_specific_keyboard_shortcuts();
 				window.DAEXTLETAL.utility.refresh_cell_properties_highlight();
@@ -45,38 +50,17 @@
 
 						'use strict';
 
-						let reload_menu       = parseInt( $( this ).data( 'reload-menu' ), 10 ) == 1 ? true : false;
-						let validation_result = window.DAEXTLETAL.utility.save_table( reload_menu );
+						const reload_menu       = parseInt( $( this ).data( 'reload-menu' ), 10 ) == 1 ? true : false;
+						const validation_result = window.DAEXTLETAL.utility.save_table( reload_menu );
 
-						// show error message.
+						// Show error message.
 						if (validation_result === true) {
 
-							if (reload_menu === false) {
-
-								// hide error message.
-								$( '#table-error p' ).html( '' );
-								$( '#table-error' ).hide();
-
-								// display temporary success message.
-								$( '#table-success p' ).text( objectL10n.table_success );
-								$( '#table-success' ).show();
-								clearTimeout( window.DAEXTLETAL.states.table_message_timeout_handler );
-								window.DAEXTLETAL.states.table_message_timeout_handler = setTimeout(
-									function () {
-
-											'use strict';
-
-										$( '#table-success' ).hide();
-
-									},
-									3000
-								);
-
-							}
+							location.href = location.href.replace( /&edit_id=\d+\b/, '' );
 
 						} else {
 
-							// display error message.
+							// Display error message.
 							$( '#table-error p' ).
 							html( objectL10n.table_error_partial_message + ' <strong>' + validation_result.join( ', ' ) + '</strong>' );
 							$( '#table-error' ).show();
@@ -93,15 +77,14 @@
 
 						'use strict';
 
-						// reload the dashboard menu.
-						window.location.replace( window.DAEXTLETAL_PARAMETERS.admin_url + 'admin.php?page=daextletal-tables' );
+						// Reload the dashboard menu.
+						window.location.replace( DAEXTLETAL_PARAMETERS.admin_url + 'admin.php?page=daextletal-tables' );
 
 					}
 				);
 
-				$( document.body ).on(
+				$( '#rows' ).on(
 					'change',
-					'#rows' ,
 					function () {
 
 						'use strict';
@@ -111,9 +94,8 @@
 					}
 				);
 
-				$( document.body ).on(
+				$( '#columns' ).on(
 					'change',
-					'#columns' ,
 					function () {
 
 						'use strict';
@@ -131,7 +113,7 @@
 
 						'use strict';
 
-						let element_id = $( this ).attr( 'id' );
+						const element_id = $( this ).attr( 'id' );
 
 						window.DAEXTLETAL.utility.update_reset_cell_properties( element_id );
 
@@ -145,17 +127,15 @@
 
 						'use strict';
 
-						// open and close the various sections of the tables area.
-						let target = $( this ).attr( 'data-trigger-target' );
+						// Open and close the various sections of the tables area.
+						const target = $( this ).attr( 'data-trigger-target' );
 						$( '.' + target ).toggle();
 						$( this ).find( '.expand-icon' ).toggleClass( 'arrow-down' );
-
-						window.DAEXTLETAL.utility.remove_border_last_element_daext_form_table();
 
 					}
 				);
 
-				$( window ).on(
+				jQuery( window ).on(
 					'resize',
 					function () {
 
@@ -197,10 +177,6 @@
 				);
 
 				// Dialog Confirm -------------------------------------------------------------------------------------.
-
-				/**
-				 * Original Version (not compatible with pre-ES5 browser)
-				 */
 				$(
 					function () {
 
@@ -215,10 +191,18 @@
 								modal: true,
 								buttons: {
 									[objectL10n.delete]: function () {
+
+										'use strict';
+
 										$( '#form-delete-' + window.DAEXTLETAL.states.tableToDelete ).submit();
+
 									},
 									[objectL10n.cancel]: function () {
+
+										'use strict';
+
 										$( this ).dialog( 'close' );
+
 									},
 								},
 							}

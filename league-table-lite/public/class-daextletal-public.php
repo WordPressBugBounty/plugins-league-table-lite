@@ -407,11 +407,13 @@ class Daextletal_Public {
 
 				// Add an image to the left of the cell if the "image_left" property is set.
 				if ( strlen( trim( $cell_properties['image_left'] ) ) > 0 ) {
+					// phpcs:ignore -- PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage -- The image is not an attachment image.
 					echo '<img class="daextletal-image-left" src="' . esc_url( stripslashes( $cell_properties['image_left'] ) ) . '">';
 				}
 
 				// Add an image to the right of the cell if the "image_right" property is set.
 				if ( strlen( trim( $cell_properties['image_right'] ) ) > 0 ) {
+					// phpcs:ignore -- PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage -- The image is not an attachment image.
 					echo '<img class="daextletal-image-right" src="' . esc_url( stripslashes( $cell_properties['image_right'] ) ) . '">';
 				}
 			}
@@ -465,11 +467,13 @@ class Daextletal_Public {
 
 				// Add an image to the left of the cell if the "image_left" property is set.
 				if ( strlen( trim( $cell_properties['image_left'] ) ) > 0 ) {
+					// phpcs:ignore -- PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage -- The image is not an attachment image.
 					echo '<img class="daextletal-image-left" src="' . esc_url( stripslashes( $cell_properties['image_left'] ) ) . '">';
 				}
 
 				// Add an image to the left of the cell if the "image_right" property is set.
 				if ( strlen( trim( $cell_properties['image_right'] ) ) > 0 ) {
+					// phpcs:ignore -- PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage -- The image is not an attachment image.
 					echo '<img class="daextletal-image-right" src="' . esc_url( stripslashes( $cell_properties['image_right'] ) ) . '">';
 				}
 			}

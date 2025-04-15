@@ -1,5 +1,5 @@
 /**
- * Utility methods used in the Tables menu.
+ * This files includes utility methods.
  *
  * @package league-table-lite
  */
@@ -35,18 +35,6 @@
 
 		},
 
-		/**
-		 * Remove the bottom border on the cell of the main table (".daext-form-table")
-		 */
-		remove_border_last_element_daext_form_table: function () {
-
-			'use strict';
-
-			$( 'table.daext-form-table tr > *' ).css( 'border-bottom-width', '1px' );
-			$( 'table.daext-form-table tr:visible:last > *' ).css( 'border-bottom-width', '0' );
-
-		},
-
 		/*
 		Initialize the handsontable table
 		*/
@@ -54,39 +42,39 @@
 
 			'use strict';
 
-			let order_by               = null;
+			let order_by         = null;
 			let daextletal_max_rows    = null;
 			let daextletal_max_columns = null;
 			let daextletal_data        = [];
 
-			/*
-			If the form is in edit mode retrieve the data of the table based on the table id, otherwise initialize an empty
-			table.
-			*/
+			/**
+			 * If the form is in edit mode retrieve the data of the table based on the table id, otherwise initialize an
+			 * empty table.
+			 */
 			if (parseInt( $( '#update-id' ).val() ) > 0) {
 
-				// prepare ajax request.
-				let data = {
+				// Prepare ajax request.
+				const data = {
 					'action': 'daextletal_retrieve_table_data',
-					'security': window.DAEXTLETAL_PARAMETERS.nonce,
+					'security': DAEXTLETAL_PARAMETERS.nonce,
 					'table_id': $( '#update-id' ).val(),
 				};
 
-				// set ajax in synchronous mode.
+				// Set ajax in synchronous mode.
 				jQuery.ajaxSetup( {async: false} );
 
-				// send ajax request.
+				// Send ajax request.
 				$.post(
-					window.DAEXTLETAL_PARAMETERS.ajax_url,
+					DAEXTLETAL_PARAMETERS.ajax_url,
 					data,
 					function (response_json) {
 
 						'use strict';
 
-						// initialize the table with the retrieved data.
-						let response_obj = JSON.parse( response_json );
+						// Initialize the table with the retrieved data.
+						const response_obj = JSON.parse( response_json );
 
-						let data_content_obj = response_obj['data_content'];
+						const data_content_obj = response_obj['data_content'];
 
 						order_by = response_obj['order_by'];
 
@@ -95,9 +83,6 @@
 							function (index, value) {
 
 								'use strict';
-
-								// Decode the HTML entities of the table cells in this row.
-								value = value.map( window.DAEXTLETAL.utility.decode_entities );
 
 								daextletal_data.push( value );
 
@@ -110,12 +95,12 @@
 					}
 				);
 
-				// set ajax in asynchronous mode.
+				// Set ajax in asynchronous mode.
 				jQuery.ajaxSetup( {async: true} );
 
 			} else {
 
-				// initialize an empty table.
+				// Initialize an empty table.
 				daextletal_data = [
 				[
 				'Label 1',
@@ -146,7 +131,13 @@
 			}
 
 			// Instantiate the handsontable table.
-			let daextletal_container                = document.getElementById( 'daextletal-table' );
+			const daextletal_container = document.getElementById( 'daextletal-table' );
+
+			// If the daextletal_container DOM doesn't exist, return.
+			if (daextletal_container === null) {
+				return;
+			}
+
 			window.DAEXTLETAL.states.daextletal_hot = new Handsontable(
 				daextletal_container,
 				{
@@ -161,9 +152,12 @@
 
 					data: daextletal_data,
 
-					// set the new maximum number of rows and columns.
+					// Set the new maximum number of rows and columns.
 					maxRows: daextletal_max_rows,
 					maxCols: daextletal_max_columns,
+
+					width: 866,  // Set the desired width.
+					stretchH: 'all', // This ensures that columns stretch to fill the table width.
 
 					contextMenu: {
 						items: {
@@ -176,15 +170,16 @@
 
 									if (
 
-									// the first row is selected.
+									// The first row is selected.
 									window.DAEXTLETAL.states.daextletal_hot.getSelected()[0][0] === 0 ||
 
-									// the maximum number of rows has been reached.
+									// The maximum number of rows has been reached.
 									window.DAEXTLETAL.states.daextletal_hot.countRows() > 10000
 
 									) {
 										return true;
 									}
+
 								},
 								callback: function (key, options) {
 
@@ -197,9 +192,12 @@
 
 							'insert_row_below': {
 								disabled: function () {
+
+									'use strict';
+
 									if (
 
-									// the maximum number of rows has been reached.
+									// The maximum number of rows has been reached.
 									window.DAEXTLETAL.states.daextletal_hot.countRows() > 10000
 
 									) {
@@ -225,12 +223,13 @@
 
 									if (
 
-									// the maximum number of rows has been reached.
+									// The maximum number of rows has been reached.
 									window.DAEXTLETAL.states.daextletal_hot.countCols() >= 40
 
 									) {
 										return true;
 									}
+
 								},
 								name: objectL10n.insert_column_left,
 								callback: function (key, options) {
@@ -249,12 +248,13 @@
 
 									if (
 
-									// the maximum number of rows has been reached.
+									// The maximum number of rows has been reached.
 									window.DAEXTLETAL.states.daextletal_hot.countCols() >= 40
 
 									) {
 										return true;
 									}
+
 								},
 								name: objectL10n.insert_column_right,
 								callback: function (key, options) {
@@ -262,6 +262,7 @@
 									'use strict';
 
 									window.DAEXTLETAL.contextMenu.insert_column_right( options[0].start.col );
+
 								},
 							},
 
@@ -311,16 +312,18 @@
 							'sep_3': {name: '---------'},
 
 							'copy': {
-								name: objectL10n.copy_to_system_clipboard,
+								name: objectL10n.copy_data,
 							},
 
 							'cut': {
-								name: objectL10n.cut_in_system_clipboard,
+								name: objectL10n.cut_data,
 							},
 
 							'paste': {
-								name: objectL10n.paste_from_system_clipboard,
+								name: objectL10n.paste_data,
 								callback: function (key, options) {
+
+									'use strict';
 
 									$( '.dialog-alert[data-id="dialog-keyboard-shortcut"]' ).dialog( 'open' );
 
@@ -332,13 +335,9 @@
 							'reset_data': {
 								name: objectL10n.reset_data,
 								callback: function (key, options) {
-
-									'use strict';
-
 									if (window.DAEXTLETAL.utility.valid_cell_number( options[0] )) {
 										window.DAEXTLETAL.contextMenu.reset_data( options[0] );
 									}
-
 								},
 							},
 
@@ -381,9 +380,9 @@
 			* Add the select element in the #order-by-* field from 1 to 5 based on the current number of columns.
 			* Use the data that come from the ajax request to select the proper items
 			*/
-			let number_of_columns = parseInt( $( '#columns' ).val() );
+			const number_of_columns = parseInt( $( '#columns' ).val() );
 
-			// generate the select element options.
+			// Generate the select element options.
 			let option_elements = '';
 			for (let t = 1; t <= number_of_columns; t++) {
 				option_elements += '<option value="' + t + '">' + objectL10n.column + ' ' + t + '</option>';
@@ -391,7 +390,6 @@
 
 			// add the select element options inside the select boxes.
 			$( '#order-by' ).append( option_elements );
-
 
 			if (order_by !== null) {
 
@@ -414,100 +412,103 @@
 
 			'use strict';
 
-			// get form data.
-			let name        = $( '#name' ).val();
-			let description = $( '#description' ).val();
-			let rows        = $( '#rows' ).val();
-			let columns     = $( '#columns' ).val();
+			// Get form data.
+			const temporary_table_id = $( '#temporary-table-id' ).length ? $( '#temporary-table-id' ).val() : null;
+			const name               = $( '#name' ).val();
+			const description        = $( '#description' ).val();
+			const type               = $( '#type' ).val();
+			const rows               = $( '#rows' ).val();
+			const columns            = $( '#columns' ).val();
 
-			// sorting.
-			let enable_sorting        = $( '#enable-sorting' ).val();
-			let enable_manual_sorting = $( '#enable-manual-sorting' ).val();
-			let show_position         = $( '#show-position' ).val();
-			let position_side         = $( '#position-side' ).val();
-			let position_label        = $( '#position-label' ).val();
-			let number_format         = $( '#number-format' ).val();
-			let order_desc_asc        = $( '#order-desc-asc' ).val();
-			let order_by              = $( '#order-by' ).val();
-			let order_data_type       = $( '#order-data-type' ).val();
-			let order_date_format     = $( '#order-date-format' ).val();
+			// Sorting.
+			const enable_sorting        = $( '#enable-sorting' ).prop( 'checked' ) ? 1 : 0;
+			const enable_manual_sorting = $( '#enable-manual-sorting' ).prop( 'checked' ) ? 1 : 0;
+			const show_position         = $( '#show-position' ).prop( 'checked' ) ? 1 : 0;
+			const position_side         = $( '#position-side' ).val();
+			const position_label        = $( '#position-label' ).val();
+			const number_format         = $( '#number-format' ).val();
+			const order_desc_asc      = $( '#order-desc-asc' ).val();
+			const order_by            = $( '#order-by' ).val();
+			const order_data_type     = $( '#order-data-type' ).val();
+			const order_date_format   = $( '#order-date-format' ).val();
 
-			// style.
-			let table_layout               = $( '#table-layout' ).val();
-			let table_width                = $( '#table-width' ).val();
-			let table_width_value          = $( '#table-width-value' ).val();
-			let table_minimum_width        = $( '#table-minimum-width' ).val();
-			let column_width               = $( '#column-width' ).val();
-			let column_width_value         = $( '#column-width-value' ).val();
-			let table_margin_top           = $( '#table-margin-top' ).val();
-			let table_margin_bottom        = $( '#table-margin-bottom' ).val();
-			let enable_container           = $( '#enable-container' ).val();
-			let container_width            = $( '#container-width' ).val();
-			let container_height           = $( '#container-height' ).val();
-			let show_header                = $( '#show-header' ).val();
-			let header_font_size           = $( '#header-font-size' ).val();
-			let header_font_family         = $( '#header-font-family' ).val();
-			let header_font_weight         = $( '#header-font-weight' ).val();
-			let header_font_style          = $( '#header-font-style' ).val();
-			let header_background_color    = $( '#header-background-color' ).val();
-			let header_font_color          = $( '#header-font-color' ).val();
-			let header_link_color          = $( '#header-link-color' ).val();
-			let header_border_color        = $( '#header-border-color' ).val();
-			let header_position_alignment  = $( '#header-position-alignment' ).val();
-			let body_font_size             = $( '#body-font-size' ).val();
-			let body_font_family           = $( '#body-font-family' ).val();
-			let body_font_weight           = $( '#body-font-weight' ).val();
-			let body_font_style            = $( '#body-font-style' ).val();
-			let even_rows_background_color = $( '#even-rows-background-color' ).val();
-			let odd_rows_background_color  = $( '#odd-rows-background-color' ).val();
-			let even_rows_font_color       = $( '#even-rows-font-color' ).val();
-			let even_rows_link_color       = $( '#even-rows-link-color' ).val();
-			let odd_rows_font_color        = $( '#odd-rows-font-color' ).val();
-			let odd_rows_link_color        = $( '#odd-rows-link-color' ).val();
-			let rows_border_color          = $( '#rows-border-color' ).val();
+			// Style.
+			const table_layout               = $( '#table-layout' ).val();
+			const table_width                = $( '#table-width' ).val();
+			const table_width_value          = $( '#table-width-value' ).val();
+			const table_minimum_width        = $( '#table-minimum-width' ).val();
+			const column_width               = $( '#column-width' ).val();
+			const column_width_value         = $( '#column-width-value' ).val();
+			const table_margin_top           = $( '#table-margin-top' ).val();
+			const table_margin_bottom        = $( '#table-margin-bottom' ).val();
+			const enable_container           = $( '#enable-container' ).prop( 'checked' ) ? 1 : 0;
+			const container_width            = $( '#container-width' ).val();
+			const container_height           = $( '#container-height' ).val();
+			const show_header                = $( '#show-header' ).prop( 'checked' ) ? 1 : 0;
+			const header_font_size           = $( '#header-font-size' ).val();
+			const header_font_family         = $( '#header-font-family' ).val();
+			const header_font_weight         = $( '#header-font-weight' ).val();
+			const header_font_style          = $( '#header-font-style' ).val();
+			const header_background_color    = $( '#header-background-color' ).val();
+			const header_font_color          = $( '#header-font-color' ).val();
+			const header_link_color          = $( '#header-link-color' ).val();
+			const header_border_color        = $( '#header-border-color' ).val();
+			const header_position_alignment  = $( '#header-position-alignment' ).val();
+			const body_font_size             = $( '#body-font-size' ).val();
+			const body_font_family           = $( '#body-font-family' ).val();
+			const body_font_weight           = $( '#body-font-weight' ).val();
+			const body_font_style            = $( '#body-font-style' ).val();
+			const even_rows_background_color = $( '#even-rows-background-color' ).val();
+			const odd_rows_background_color  = $( '#odd-rows-background-color' ).val();
+			const even_rows_font_color       = $( '#even-rows-font-color' ).val();
+			const even_rows_link_color       = $( '#even-rows-link-color' ).val();
+			const odd_rows_font_color        = $( '#odd-rows-font-color' ).val();
+			const odd_rows_link_color        = $( '#odd-rows-link-color' ).val();
+			const rows_border_color          = $( '#rows-border-color' ).val();
 
-			// autoalignment.
-			let autoalignment_priority                = $( '#autoalignment-priority' ).val();
-			let autoalignment_affected_rows_left      = $( '#autoalignment-affected-rows-left' ).val();
-			let autoalignment_affected_rows_center    = $( '#autoalignment-affected-rows-center' ).val();
-			let autoalignment_affected_rows_right     = $( '#autoalignment-affected-rows-right' ).val();
-			let autoalignment_affected_columns_left   = $( '#autoalignment-affected-columns-left' ).val();
-			let autoalignment_affected_columns_center = $( '#autoalignment-affected-columns-center' ).val();
-			let autoalignment_affected_columns_right  = $( '#autoalignment-affected-columns-right' ).val();
+			// Autoalignment.
+			const autoalignment_priority                = $( '#autoalignment-priority' ).val();
+			const autoalignment_affected_rows_left      = $( '#autoalignment-affected-rows-left' ).val();
+			const autoalignment_affected_rows_center    = $( '#autoalignment-affected-rows-center' ).val();
+			const autoalignment_affected_rows_right     = $( '#autoalignment-affected-rows-right' ).val();
+			const autoalignment_affected_columns_left   = $( '#autoalignment-affected-columns-left' ).val();
+			const autoalignment_affected_columns_center = $( '#autoalignment-affected-columns-center' ).val();
+			const autoalignment_affected_columns_right  = $( '#autoalignment-affected-columns-right' ).val();
 
-			// responsive.
-			let tablet_breakpoint       = $( '#tablet-breakpoint' ).val();
-			let hide_tablet_list        = $( '#hide-tablet-list' ).val();
-			let tablet_header_font_size = $( '#tablet-header-font-size' ).val();
-			let tablet_body_font_size   = $( '#tablet-body-font-size' ).val();
-			let tablet_hide_images      = $( '#tablet-hide-images' ).val();
-			let phone_breakpoint        = $( '#phone-breakpoint' ).val();
-			let hide_phone_list         = $( '#hide-phone-list' ).val();
-			let phone_header_font_size  = $( '#phone-header-font-size' ).val();
-			let phone_body_font_size    = $( '#phone-body-font-size' ).val();
-			let phone_hide_images       = $( '#phone-hide-images' ).val();
+			// Responsive.
+			const tablet_breakpoint        = $( '#tablet-breakpoint' ).val();
+			const hide_tablet_list         = $( '#hide-tablet-list' ).val();
+			const tablet_header_font_size  = $( '#tablet-header-font-size' ).val();
+			const tablet_body_font_size    = $( '#tablet-body-font-size' ).val();
+			const tablet_hide_images       = $( '#tablet-hide-images' ).prop( 'checked' ) ? 1 : 0;
+			const phone_breakpoint         = $( '#phone-breakpoint' ).val();
+			const hide_phone_list          = $( '#hide-phone-list' ).val();
+			const phone_header_font_size   = $( '#phone-header-font-size' ).val();
+			const phone_body_font_size     = $( '#phone-body-font-size' ).val();
+			const phone_hide_images        = $( '#phone-hide-images' ).prop( 'checked' ) ? 1 : 0;
 
-			// advanced.
-			let enable_cell_properties = $( '#enable-cell-properties' ).val();
+			// Advanced.
+			const enable_cell_properties   = $( '#enable-cell-properties' ).prop( 'checked' ) ? 1 : 0;
 
-			// save the table data available as a JavaScript value in a JSON string.
-			let table_data = JSON.stringify( {data: window.DAEXTLETAL.states.daextletal_hot.getData()} );
+			// Save the table data available as a JavaScript value in a JSON string.
+			const table_data = JSON.stringify( {data: window.DAEXTLETAL.states.daextletal_hot.getData()} );
 
-			// prepare ajax request.
-			let data = {
+			// Prepare ajax request.
+			const data = {
 
 				'action': 'daextletal_save_data',
-				'security': window.DAEXTLETAL_PARAMETERS.nonce,
+				'security': DAEXTLETAL_PARAMETERS.nonce,
 				'table_id': window.DAEXTLETAL.utility.get_table_id(),
 
-				//general
+				// General.
+				'temporary_table_id': temporary_table_id,
 				'name': name,
 				'description': description,
 				'rows': rows,
 				'columns': columns,
 				'table_data': table_data,
 
-				//sorting
+				// Sorting.
 				'enable_sorting': enable_sorting,
 				'enable_manual_sorting': enable_manual_sorting,
 				'show_position': show_position,
@@ -519,7 +520,7 @@
 				'order_data_type': order_data_type,
 				'order_date_format': order_date_format,
 
-				//style
+				// Style.
 				'table_layout': table_layout,
 				'table_width': table_width,
 				'table_width_value': table_width_value,
@@ -553,7 +554,7 @@
 				'odd_rows_link_color': odd_rows_link_color,
 				'rows_border_color': rows_border_color,
 
-				//autoalignment
+				// Autoalignment.
 				'autoalignment_priority': autoalignment_priority,
 				'autoalignment_affected_rows_left': autoalignment_affected_rows_left,
 				'autoalignment_affected_rows_center': autoalignment_affected_rows_center,
@@ -562,7 +563,7 @@
 				'autoalignment_affected_columns_center': autoalignment_affected_columns_center,
 				'autoalignment_affected_columns_right': autoalignment_affected_columns_right,
 
-				//responsive
+				// Responsive.
 				'tablet_breakpoint': tablet_breakpoint,
 				'hide_tablet_list': hide_tablet_list,
 				'tablet_header_font_size': tablet_header_font_size,
@@ -574,19 +575,19 @@
 				'phone_body_font_size': phone_body_font_size,
 				'phone_hide_images': phone_hide_images,
 
-				//advanced
+				// Advanced.
 				'enable_cell_properties': enable_cell_properties,
 			};
 
-			let validation_result = window.DAEXTLETAL.utility.table_is_valid( data );
+			const validation_result = window.DAEXTLETAL.utility.table_is_valid( data );
 			if (validation_result === true) {
 
-				// set ajax in synchronous mode.
+				// Set ajax in synchronous mode.
 				jQuery.ajaxSetup( {async: false} );
 
-				// send ajax request.
+				// Send ajax request.
 				$.post(
-					window.DAEXTLETAL_PARAMETERS.ajax_url,
+					DAEXTLETAL_PARAMETERS.ajax_url,
 					data,
 					function (data) {
 
@@ -594,15 +595,15 @@
 
 						if (reload_menu === true) {
 
-							// reload the dashboard menu.
-							window.location.replace( window.DAEXTLETAL_PARAMETERS.admin_url + 'admin.php?page=daextletal-tables' );
+							// Reload the dashboard menu.
+							window.location.replace( DAEXTLETAL_PARAMETERS.admin_url + 'admin.php?page=daextletal-tables' );
 
 						}
 
 					}
 				);
 
-				// set ajax in asynchronous mode.
+				// Set ajax in asynchronous mode.
 				jQuery.ajaxSetup( {async: true} );
 
 				return true;
@@ -638,7 +639,8 @@
 
 			'use strict';
 
-			$( '#daextletal-table-td' ).keydown(
+			$( '#daextletal-table-td' ).on(
+				'keydown',
 				function (e) {
 
 					'use strict';
@@ -652,6 +654,7 @@
 						$( '.dialog-alert[data-id="specific-shortcut-disabled"]' ).dialog( 'open' );
 						return false;
 					}
+
 				}
 			);
 
@@ -664,21 +667,21 @@
 
 			'use strict';
 
-			// init variables.
+			// Init variables.
 			let fields_with_errors_a = [];
 
-			// define regex patterns ----------------------------------------------------------------------------------.
-			let digits_regex                    = /^\s*\d+\s*$/;
-			let font_family_regex               = /^([A-Za-z0-9-\'", ]*)$/;
-			let list_of_comma_separated_numbers = /^(\s*(\d+\s*,\s*)+\d+\s*|\s*\d+\s*)$/;
-			let hex_rgb_regex                   = /^#(?:[0-9a-fA-F]{3}){1,2}$/;
+			// Define regex patterns ----------------------------------------------------------------------------------.
+			const digits_regex                    = /^\s*\d+\s*$/;
+			const font_family_regex               = /^([A-Za-z0-9-\'", ]*)$/;
+			const list_of_comma_separated_numbers = /^(\s*(\d+\s*,\s*)+\d+\s*|\s*\d+\s*)$/;
+			const hex_rgb_regex                   = /^#(?:[0-9a-fA-F]{3}){1,2}$/;
 
-			// validate data ------------------------------------------------------------------------------------------.
+			// Validate data ------------------------------------------------------------------------------------------.
 
 			// Basic Info.
 			if (data.name.trim().length < 1 || data.name.trim().length > 255) {
 				fields_with_errors_a.push( objectL10n.name );}
-			if (data.description.trim().length < 1 || data.description.trim().length > 255) {
+			if (data.description.trim().length > 255) {
 				fields_with_errors_a.push( objectL10n.description );
 			}
 			if ( ! data.rows.match( digits_regex ) || parseInt( data.rows, 10 ) < 1 || parseInt( data.rows, 10 ) >
@@ -840,8 +843,8 @@
 			 */
 			window.DAEXTLETAL.states.synthetic_clipboard = null;
 
-			// change the number of rows.
-			let current_number_of_rows = window.DAEXTLETAL.states.daextletal_hot.countRows() - 1;
+			// Change the number of rows.
+			const current_number_of_rows = window.DAEXTLETAL.states.daextletal_hot.countRows() - 1;
 			if ($( '#rows' ).val() < 1) {
 				$( '#rows' ).val( 1 );}
 			let new_number_of_rows = parseInt( $( '#rows' ).val(), 10 );
@@ -854,40 +857,40 @@
 
 			if (new_number_of_rows > current_number_of_rows) {
 
-				// set the new maximum number of rows.
+				// Set the new maximum number of rows.
 				window.DAEXTLETAL.states.daextletal_hot.updateSettings(
 					{
 						maxRows: (new_number_of_rows + 1),
 					}
 				);
 
-				let cells_to_add      = [];
-				let row_difference    = new_number_of_rows - current_number_of_rows;
-				let count_rows_result = window.DAEXTLETAL.states.daextletal_hot.countRows();
-				let count_cols_result = window.DAEXTLETAL.states.daextletal_hot.countCols();
+				let cells_to_add        = [];
+				const row_difference    = new_number_of_rows - current_number_of_rows;
+				const count_rows_result = window.DAEXTLETAL.states.daextletal_hot.countRows();
+				const count_cols_result = window.DAEXTLETAL.states.daextletal_hot.countCols();
 
 				for (let i = 1; i <= row_difference; i++) {
 
-						// initialize with 0 all the cells of the new row.
+						// Initialize with 0 all the cells of the new row.
 					for (let t = 1; t <= count_cols_result; t++) {
 						cells_to_add.push( [count_rows_result + i - 1, (t - 1), 0] );
 					}
 
 				}
 
-				// create the new rows.
+				// Create the new rows.
 				window.DAEXTLETAL.states.daextletal_hot.alter( 'insert_row', null, row_difference );
 
-				// use the setDataAtCell() method one single time with a two-dimensional array to avoid performance issues.
+				// Use the setDataAtCell() method one single time with a two-dimensional array to avoid performance issues.
 				window.DAEXTLETAL.states.daextletal_hot.setDataAtCell( cells_to_add );
 
 			} else if (new_number_of_rows < current_number_of_rows) {
 
-				let row_difference = current_number_of_rows - new_number_of_rows;
+				const row_difference = current_number_of_rows - new_number_of_rows;
 
 				window.DAEXTLETAL.states.daextletal_hot.alter( 'remove_row', null, row_difference );
 
-				// set the new maximum number of rows.
+				// Set the new maximum number of rows.
 				window.DAEXTLETAL.states.daextletal_hot.updateSettings(
 					{
 						maxRows: (new_number_of_rows + 1),
@@ -896,24 +899,24 @@
 
 			}
 
-			// create or remove the new rows in the 'data' db table with an asynchronous ajax request -----------------.
+			// Create or remove the new rows in the 'data' db table with an asynchronous ajax request -----------------.
 			if (new_number_of_rows != current_number_of_rows) {
 
-				let data = {
+				const data = {
 					'action': 'daextletal_add_remove_rows',
-					'security': window.DAEXTLETAL_PARAMETERS.nonce,
+					'security': DAEXTLETAL_PARAMETERS.nonce,
 					'table_id': window.DAEXTLETAL.utility.get_table_id(),
 					'current_number_of_rows': current_number_of_rows,
 					'new_number_of_rows': new_number_of_rows,
 					'current_number_of_columns': window.DAEXTLETAL.states.daextletal_hot.countCols(),
 				};
 
-				// set ajax in synchronous mode.
+				// Set ajax in synchronous mode.
 				jQuery.ajaxSetup( {async: false} );
 
-				// send ajax request.
+				// Send ajax request.
 				$.post(
-					window.DAEXTLETAL_PARAMETERS.ajax_url,
+					DAEXTLETAL_PARAMETERS.ajax_url,
 					data,
 					function (data_json) {
 
@@ -924,16 +927,16 @@
 					}
 				);
 
-				// set ajax in asynchronous mode.
+				// Set ajax in asynchronous mode.
 				jQuery.ajaxSetup( {async: true} );
 
 			}
 
 		},
 
-		/*
-		* Update the number of columns on the handsontable and on the "data" db table
-		*/
+		/**
+		 * Update the number of columns on the handsontable and on the "data" db table.
+		 */
 		update_columns: function () {
 
 			'use strict';
@@ -944,7 +947,7 @@
 			 */
 			window.DAEXTLETAL.states.synthetic_clipboard = null;
 
-			let current_number_of_columns = window.DAEXTLETAL.states.daextletal_hot.countCols();
+			const current_number_of_columns = window.DAEXTLETAL.states.daextletal_hot.countCols();
 			if ($( '#columns' ).val() < 1) {
 				$( '#columns' ).val( 1 );}
 			let new_number_of_columns = parseInt( $( '#columns' ).val(), 10 );
@@ -957,28 +960,28 @@
 
 			if (new_number_of_columns > current_number_of_columns) {
 
-				// set the new maximum number of columns.
+				// Set the new maximum number of columns.
 				window.DAEXTLETAL.states.daextletal_hot.updateSettings(
 					{
 						maxCols: new_number_of_columns,
 					}
 				);
 
-				// add the new columns.
-				let cells_to_add      = [];
-				let column_difference = new_number_of_columns - current_number_of_columns;
-				let count_rows_result = window.DAEXTLETAL.states.daextletal_hot.countRows();
-				let count_cols_result = window.DAEXTLETAL.states.daextletal_hot.countCols();
+				// Add the new columns.
+				let cells_to_add        = [];
+				const column_difference = new_number_of_columns - current_number_of_columns;
+				const count_rows_result = window.DAEXTLETAL.states.daextletal_hot.countRows();
+				const count_cols_result = window.DAEXTLETAL.states.daextletal_hot.countCols();
 
 				for (let i = 1; i <= column_difference; i++) {
 
 					for (let t = 1; t <= count_rows_result; t++) {
 
-						if (t === 1) {
-								// in row 1 add the default label text.
+						if (t == 1) {
+								// In row 1 add the default label text.
 								cells_to_add.push( [0, (count_cols_result + i - 1), 'Label ' + parseInt( count_cols_result + i, 10 )] );
 						} else {
-							// from row 2 initialize with 0 all the cells of the new column.
+							// From row 2 initialize with 0 all the cells of the new column.
 							cells_to_add.push( [(t - 1), (count_cols_result + i - 1), 0] );
 						}
 
@@ -986,19 +989,19 @@
 
 				}
 
-				// create the new columns.
+				// Create the new columns.
 				window.DAEXTLETAL.states.daextletal_hot.alter( 'insert_col', null, column_difference );
 
-				// use the setDataAtCell() method one single time with a two-dimensional array to avoid performance issues.
+				// Use the setDataAtCell() method one single time with a two-dimensional array to avoid performance issues.
 				window.DAEXTLETAL.states.daextletal_hot.setDataAtCell( cells_to_add );
 
 			} else if (new_number_of_columns < current_number_of_columns) {
 
-				let column_difference = current_number_of_columns - new_number_of_columns;
+				const column_difference = current_number_of_columns - new_number_of_columns;
 
 				window.DAEXTLETAL.states.daextletal_hot.alter( 'remove_col', null, column_difference );
 
-				// set the new maximum number of columns.
+				// Set the new maximum number of columns.
 				window.DAEXTLETAL.states.daextletal_hot.updateSettings(
 					{
 						maxCols: new_number_of_columns,
@@ -1007,22 +1010,22 @@
 
 			}
 
-			// create or remove the new columns in the 'data' db table with an asynchronous ajax request --------------.
+			// Create or remove the new columns in the 'data' db table with an asynchronous ajax request --------------.
 			if (new_number_of_columns != current_number_of_columns) {
 
-				let data = {
+				const data = {
 					'action': 'daextletal_add_remove_columns',
-					'security': window.DAEXTLETAL_PARAMETERS.nonce,
+					'security': DAEXTLETAL_PARAMETERS.nonce,
 					'table_id': window.DAEXTLETAL.utility.get_table_id(),
 					'new_number_of_columns': new_number_of_columns,
 				};
 
-				// set ajax in synchronous mode.
+				// Set ajax in synchronous mode.
 				jQuery.ajaxSetup( {async: false} );
 
-				// send ajax request.
+				// Send ajax request.
 				$.post(
-					window.DAEXTLETAL_PARAMETERS.ajax_url,
+					DAEXTLETAL_PARAMETERS.ajax_url,
 					data,
 					function (data_json) {
 
@@ -1033,46 +1036,45 @@
 					}
 				);
 
-				// set ajax in asynchronous mode.
+				// Set ajax in asynchronous mode.
 				jQuery.ajaxSetup( {async: true} );
 
 			}
 
 		},
 
-		/*
-		* Retrieves and displays the properties of the cell.
-		*
-		* If there are no properties associated with a cell the default values will be displayed.
-		*
-		* @param row Int The row of the cell
-		* @param column Int The column of the cell
-		*/
+		/**
+		 * Retrieves and displays the properties of the cell.
+		 *
+		 * If there are no properties associated with a cell the default values will be displayed.
+		 *
+		 * @param row Int The row of the cell
+		 * @param column Int The column of the cell
+		 */
 		retrieve_cell_properties: function (row, column) {
 
 			'use strict';
 
-			let table_id = window.DAEXTLETAL.utility.get_table_id();
+			const table_id             = window.DAEXTLETAL.utility.get_table_id();
+			let data_obj               = null;
+			let cell_properties_exists = null;
 
-			// prepare ajax request.
-			let data = {
+			// Prepare ajax request.
+			const data = {
 				'action': 'daextletal_retrieve_cell_properties',
-				'security': window.DAEXTLETAL_PARAMETERS.nonce,
+				'security': DAEXTLETAL_PARAMETERS.nonce,
 				'table_id': table_id,
 				'row': row,
 				'column': column,
 			};
 
-			// send ajax request.
+			// Send ajax request.
 			$.post(
-				window.DAEXTLETAL_PARAMETERS.ajax_url,
+				DAEXTLETAL_PARAMETERS.ajax_url,
 				data,
 				function (data_json) {
 
 					'use strict';
-
-					let data_obj               = null;
-					let cell_properties_exists = null;
 
 					try {
 
@@ -1082,7 +1084,7 @@
 
 					} catch (e) {
 
-						// set the default cell properties.
+						// Set the default cell properties.
 						data_obj = {
 							'table_id': table_id,
 							'row_index': row,
@@ -1096,7 +1098,7 @@
 
 					}
 
-					// update the cell properties in the sidebar.
+					// Update the cell properties in the sidebar.
 					window.DAEXTLETAL.utility.update_cell_properties_in_sidebar( data_obj, cell_properties_exists );
 
 				}
@@ -1104,9 +1106,9 @@
 
 		},
 
-		/*
-		* Update or reset the cell properties of a cell in the "cell" db table
-		*/
+		/**
+		 * Update or reset the cell properties of a cell in the "cell" db table.
+		 */
 		update_reset_cell_properties: function (task) {
 
 			'use strict';
@@ -1117,17 +1119,17 @@
 			 */
 			window.DAEXTLETAL.states.synthetic_clipboard = null;
 
-			let table_id     = window.DAEXTLETAL.utility.get_table_id();
-			let row_index    = $( '#cell-property-row-index' ).val();
-			let column_index = $( '#cell-property-column-index' ).val();
-			let link         = $( '#cell-property-link' ).val();
-			let image_left   = $( '#cell-property-image-left' ).val();
-			let image_right  = $( '#cell-property-image-right' ).val();
+			const table_id                      = window.DAEXTLETAL.utility.get_table_id();
+			const row_index                     = $( '#cell-property-row-index' ).val();
+			const column_index                  = $( '#cell-property-column-index' ).val();
+			const link                          = $( '#cell-property-link' ).val();
+			const image_left                    = $( '#cell-property-image-left' ).val();
+			const image_right                   = $( '#cell-property-image-right' ).val();
 
-			// prepare ajax request.
-			let data = {
+			// Prepare ajax request.
+			const data = {
 				'action': 'daextletal_update_reset_cell_properties',
-				'security': window.DAEXTLETAL_PARAMETERS.nonce,
+				'security': DAEXTLETAL_PARAMETERS.nonce,
 				'task': task,
 				'table_id': table_id,
 				'row_index': row_index,
@@ -1141,15 +1143,15 @@
 
 				case 'update-cell-properties':
 
-					// update cell properties -------------------------------------------------------------------------.
+					// Update cell properties -------------------------------------------------------------------------.
 					if (window.DAEXTLETAL.utility.cell_properties_is_valid( data )) {
 
-						// set ajax in synchronous mode.
+						// Set ajax in synchronous mode.
 						jQuery.ajaxSetup( {async: false} );
 
-						// send ajax request.
+						// Send ajax request.
 						$.post(
-							window.DAEXTLETAL_PARAMETERS.ajax_url,
+							DAEXTLETAL_PARAMETERS.ajax_url,
 							data,
 							function (response) {
 
@@ -1157,14 +1159,14 @@
 
 								if (response.trim() == 'success') {
 
-									// show success message.
+									// Show success message.
 									if ($( '#update-cell-properties' ).attr( 'data-action' ) == 'update') {
 										$( '#cell-properties-added-updated-message p' ).text( objectL10n.cell_properties_updated_message );
 									} else {
 										$( '#cell-properties-added-updated-message p' ).text( objectL10n.cell_properties_added_message );
 									}
 
-									// hide error message.
+									// Hide error message.
 									$( '#cell-properties-error-message' ).hide();
 
 									$( '#cell-properties-added-updated-message' ).show();
@@ -1180,7 +1182,7 @@
 										3000
 									);
 
-									// show the proper button with the proper text.
+									// Show the proper button with the proper text.
 									$( '#update-cell-properties' ).attr( 'data-action', 'update' );
 									$( '#update-cell-properties' ).val( objectL10n.update_cell_properties );
 									$( '#reset-cell-properties' ).show();
@@ -1193,18 +1195,18 @@
 							}
 						);
 
-							// set ajax in asynchronous mode.
-							jQuery.ajaxSetup( {async: true} );
+						// Set ajax in asynchronous mode.
+						jQuery.ajaxSetup( {async: true} );
 
 					}
 
-					break;
+				break;
 
 				case 'reset-cell-properties':
 
-					// reset cell properties --------------------------------------------------------------------------.
+					// Reset cell properties --------------------------------------------------------------------------.
 					$.post(
-						window.DAEXTLETAL_PARAMETERS.ajax_url,
+						DAEXTLETAL_PARAMETERS.ajax_url,
 						data,
 						function (response) {
 
@@ -1212,8 +1214,8 @@
 
 							if (response.trim() == 'success') {
 
-									// set the default cell properties.
-									let data_obj = {
+									// Set the default cell properties.
+									const data_obj = {
 										'table_id': table_id,
 										'row_index': row_index,
 										'column_index': column_index,
@@ -1222,13 +1224,13 @@
 										'image_right': '',
 								};
 
-									// update the cell properties in the sidebar.
+									// Update the cell properties in the sidebar.
 									window.DAEXTLETAL.utility.update_cell_properties_in_sidebar( data_obj, false );
 
-									// hide error message.
+									// Hide error message.
 									$( '#cell-properties-error-message' ).hide();
 
-									// show success message.
+									// Show success message.
 									$( '#cell-properties-added-updated-message p' ).text( objectL10n.cell_properties_reset_message );
 									$( '#cell-properties-added-updated-message' ).show();
 									clearTimeout( window.DAEXTLETAL.states.cell_properties_message_timeout_handler );
@@ -1251,7 +1253,7 @@
 						}
 					);
 
-					break;
+				break;
 
 			}
 
@@ -1261,13 +1263,15 @@
 
 			'use strict';
 
-			// init variables.
+			// Init variables.
 			let fields_with_errors_a = [];
 
-			// define patterns ----------------------------------------------------------------------------------------.
-			let url_regex = /^https?:\/\/.+$/;
+			// Define patterns ----------------------------------------------------------------------------------------.
+			const hex_rgb_regex                   = /^#(?:[0-9a-fA-F]{3}){1,2}$/;
+			const url_regex                       = /^https?:\/\/.+$/;
+			const list_of_comma_separated_numbers = /^(\s*(\d+\s*,\s*)+\d+\s*|\s*\d+\s*)$/;
 
-			// validate data ------------------------------------------------------------------------------------------.
+			// Validate data ------------------------------------------------------------------------------------------.
 			if (( ! data.link.match( url_regex ) && data.link.trim().length > 0) || data.link.trim().length >
 			2083) {
 				fields_with_errors_a.push( objectL10n.link );}
@@ -1280,10 +1284,10 @@
 
 			if (fields_with_errors_a.length > 0) {
 
-				// hide the added/updated message if it's shown.
+				// Hide the added/updated message if it's shown.
 				$( '#cell-properties-added-updated-message' ).hide();
 
-				// show error message.
+				// Show error message.
 				$( '#cell-properties-error-message p' ).
 				html(
 					objectL10n.cell_properties_error_partial_message + ' <strong>' + fields_with_errors_a.join( ', ' ) +
@@ -1295,7 +1299,7 @@
 
 			} else {
 
-				// hide the error message if it's shown.
+				// Hide the error message if it's shown.
 				$( '#cell-properties-error-message' ).hide();
 
 				return true;
@@ -1304,45 +1308,34 @@
 
 		},
 
-		/*
-		Initializes Select2 on all the select elements
-		*/
+		/**
+		 * Initializes Select2 on all the select elements
+		 */
 		initialize_select2: function () {
 
 			'use strict';
 
 			let select2_elements = [];
-			select2_elements.push( '#show-position' );
 			select2_elements.push( '#position-side' );
 			select2_elements.push( '#number-format' );
 			select2_elements.push( '#cell-property-font-weight' );
 			select2_elements.push( '#cell-property-font-style' );
-			select2_elements.push( '#cell-property-open-link-new-tab' );
-			select2_elements.push( '#cell-property-image-left-open-link-new-tab' );
-			select2_elements.push( '#cell-property-image-right-open-link-new-tab' );
 			select2_elements.push( '#cell-property-alignment' );
 			select2_elements.push( '#cell-property-formula' );
 			select2_elements.push( '#order-by' );
 			select2_elements.push( '#order-desc-asc' );
-			select2_elements.push( '#order-data-type' );
-			select2_elements.push( '#order-date-format' );
 			select2_elements.push( '#table-layout' ),
 			select2_elements.push( '#table-width' );
 			select2_elements.push( '#column-width' );
-			select2_elements.push( '#enable-container' );
-			select2_elements.push( '#enable-sorting' );
-			select2_elements.push( '#enable-manual-sorting' );
-			select2_elements.push( '#show-header' );
 			select2_elements.push( '#header-font-weight' );
 			select2_elements.push( '#header-font-style' );
 			select2_elements.push( '#header-position-alignment' );
 			select2_elements.push( '#body-font-weight' );
 			select2_elements.push( '#body-font-style' );
-			select2_elements.push( '#autocolors-priority' );
 			select2_elements.push( '#autoalignment-priority' );
-			select2_elements.push( '#phone-hide-images' );
-			select2_elements.push( '#tablet-hide-images' );
-			select2_elements.push( '#enable-cell-properties' );
+			select2_elements.push( '#order-data-type' );
+			select2_elements.push( '#order-date-format' );
+			select2_elements.push( '#formula-average-round' );
 
 			jQuery( select2_elements.join( ',' ) ).select2();
 
@@ -1360,12 +1353,27 @@
 
 			'use strict';
 
-			// Show the sidebar container.
-			$( '#sidebar-container' ).show();
+			// Count the number of enabled cell properties.
+			let one_cell_property_exists = false;
+			$( 'div.daext-form-cell-properties div' ).each(
+				function () {
 
-			// Remove the bottom border on the cells of the last row of the cell properties table.
-			$( 'table.daext-form-cell-properties tr > *' ).css( 'border-bottom-width', '1px' );
-			$( 'table.daext-form-cell-properties tr:visible:last > *' ).css( 'border-bottom-width', '0' );
+					'use strict';
+
+					if ($( this ).css( 'display' ) !== 'none') {
+						one_cell_property_exists = true;
+					}
+
+				}
+			);
+
+			// Display the sidebar container if at least on cell property exists.
+			if (one_cell_property_exists) {
+
+				// Show the sidebar container (Set the display property to flex).
+				$( '#sidebar-container' ).css( 'display', 'flex' );
+
+			}
 
 			// Set the title of the cell properties section.
 			if (data_obj.row_index == 0) {
@@ -1378,6 +1386,10 @@
 			// Initialize the hidden fields used to store the row and column indexes.
 			$( '#cell-property-row-index' ).val( data_obj.row_index );
 			$( '#cell-property-column-index' ).val( data_obj.column_index );
+
+			const wpColorPickerConfig = {
+				'palettes': []
+			};
 
 			// Link.
 			$( '#cell-property-link' ).val( data_obj.link );
@@ -1421,55 +1433,77 @@
 				$( '#reset-cell-properties' ).hide();
 			}
 
+			// Row Slots.
+			$( '#cell-property-row-slots' ).val( data_obj.row_slots );
+
+			// Column Slots.
+			$( '#cell-property-column-slots' ).val( data_obj.column_slots );
+
 		},
 
-		/*
-		* Update the options available in the '#order-by' field based on the number of columns defined in the #columns
-		* field. The current selected option will be maintained if the selected column still exists.
-		*/
+		/**
+		 * Update the selection of a specific select2 field (field_selector) based on the provided value (selected_value)
+		 */
+		update_select2_field: function (field_selector, selected_value) {
+
+			'use strict';
+
+			$( field_selector + ' option' ).prop( 'selected', false );
+			$( field_selector + ' option[value=' + selected_value + ']' ).attr( 'selected', 'selected' );
+			$( field_selector ).trigger( 'change' );
+
+		},
+
+		/**
+		 * Update the options available in the '#order-by-*' fields based on the number of columns defined in the #columns
+		 * field. The current selected option will be maintained if the selected column still exists.
+		 */
 		update_order_by: function () {
 
 			'use strict';
 
-			let number_of_columns = parseInt( $( '#columns' ).val(), 10 );
+			const number_of_columns = parseInt( $( '#columns' ).val(), 10 );
 
-			// get the current value of the select element.
-			let current_value = $( '#order-by' ).val();
+				// Get the current value of the select element.
+				const current_value = $( '#order-by' ).val();
 
-			// delete the option elements.
-			$( '#order-by option' ).remove();
+				// Delete the option elements.
+				$( '#order-by' + ' option' ).remove();
 
-			// add the option elements based on the current number of columns.
-			let option_elements = '';
-			for (let t = 1; t <= number_of_columns; t++) {
-				option_elements += '<option value="' + t + '">' + objectL10n.column + ' ' + t + '</option>';
-			}
-			$( '#order-by' ).append( option_elements );
+				// Add the option elements based on the current number of columns.
+				let option_elements = '';
+				for (let t = 1; t <= number_of_columns; t++) {
+					option_elements += '<option value="' + t + '">' + objectL10n.column + ' ' + t + '</option>';
+				}
+				$( '#order-by' ).append( option_elements );
 
-			// apply the stored current value if the column still exists, otherwise select the first element.
-			if (current_value <= number_of_columns) {
-				$( '#order-by' ).val( current_value );
-			} else {
-				$( '#order-by' ).val( 1 );
-			}
+				// Apply the stored current value if the column still exists, otherwise select the first element.
+				if (current_value <= number_of_columns) {
+					$( '#order-by' ).val( current_value );
+				} else {
+					$( '#order-by' ).val( 1 );
+				}
+
+				// Update select2.
+				$( '#order-by' ).trigger( 'change' );
 
 		},
 
-		/*
-		* Moves the cell properties section on the bottom of the table section when the screen width goes below a specific
-		* value.
-		*/
+		/**
+		 * Moves the cell properties section on the bottom of the table section when the screen width goes below a specific
+		 * value.
+		 */
 		responsive_sidebar_container: function () {
 
 			'use strict';
 
 			if ($( '#wpcontent' ).width() < 1560) {
 
-				$( '#sidebar-container' ).addClass( 'sidebar-container-below-breakpoint' );
+				$( '.daext-form-container' ).addClass( 'table-container-below-breakpoint' );
 
 			} else {
 
-				$( '#sidebar-container' ).removeClass( 'sidebar-container-below-breakpoint' );
+				$( '.daext-form-container' ).removeClass( 'table-container-below-breakpoint' );
 
 			}
 
@@ -1486,8 +1520,8 @@
 
 			'use strict';
 
-			let number_of_rows   = options.end.row - options.start.row + 1;
-			let number_of_column = options.end.col - options.start.col + 1;
+			const number_of_rows   = options.end.row - options.start.row + 1;
+			const number_of_column = options.end.col - options.start.col + 1;
 			if (number_of_rows * number_of_column <= 100) {
 				return true;
 			} else {
@@ -1511,16 +1545,16 @@
 
 			'use strict';
 
-			// prepare ajax request.
-			let data = {
+			// Prepare ajax request.
+			const data = {
 				'action': 'daextletal_get_cell_properties_index',
-				'security': window.DAEXTLETAL_PARAMETERS.nonce,
+				'security': DAEXTLETAL_PARAMETERS.nonce,
 				'table_id': window.DAEXTLETAL.utility.get_table_id(),
 			};
 
-			// send ajax request.
+			// Send ajax request.
 			$.post(
-				window.DAEXTLETAL_PARAMETERS.ajax_url,
+				DAEXTLETAL_PARAMETERS.ajax_url,
 				data,
 				function (data_json) {
 
@@ -1528,11 +1562,11 @@
 
 					try {
 
-						let data_a = JSON.parse( data_json );
+						const data_a = JSON.parse( data_json );
 
 						// Remove the 'has-cell-properties' class from all the cells.
-						let number_of_rows    = window.DAEXTLETAL.states.daextletal_hot.countRows();
-						let number_of_columns = window.DAEXTLETAL.states.daextletal_hot.countCols();
+						const number_of_rows    = window.DAEXTLETAL.states.daextletal_hot.countRows();
+						const number_of_columns = window.DAEXTLETAL.states.daextletal_hot.countCols();
 						for (let i = 0; i < number_of_rows; i++) {
 							for (let t = 0; t < number_of_columns; t++) {
 									window.DAEXTLETAL.states.daextletal_hot.setCellMeta( i, t, 'className', '' );
@@ -1555,14 +1589,13 @@
 									);
 								}
 							);
-
 						}
 
 						window.DAEXTLETAL.states.daextletal_hot.render();
 
 					} catch (e) {
 
-						// do nothing.
+						// Do nothing.
 
 					}
 
@@ -1572,17 +1605,99 @@
 		},
 
 		/**
-		 * Return a string with decoded HTML entities.
-		 *
-		 * Ref: https://stackoverflow.com/questions/1147359/how-to-decode-html-entities-using-jquery/1395954#1395954
-		 *
-		 * @param encodedString
+		 * Add the cell properties of the selected cells in the state used to store
+		 * the copied cell properties.
 		 */
-		decode_entities: function (encodedString) {
+		add_cell_properties_to_state: function (options, source) {
 
-			let textArea       = document.createElement( 'textarea' );
-			textArea.innerHTML = encodedString;
-			return textArea.value;
+			'use strict';
+
+			// Get the table id.
+			const table_id = window.DAEXTLETAL.utility.get_table_id();
+
+			// Prepare ajax request.
+			const data = {
+				'action': 'daextletal_retrieve_cell_properties_multiple',
+				'security': DAEXTLETAL_PARAMETERS.nonce,
+				'table_id': table_id,
+				'row_start': options.start['row'],
+				'column_start': options.start['col'],
+				'row_end': options.end['row'],
+				'column_end': options.end['col']
+			};
+
+			// Send ajax request.
+			$.post(
+				DAEXTLETAL_PARAMETERS.ajax_url,
+				data,
+				function (data_json) {
+
+					'use strict';
+
+					try {
+
+						// Save the cell properties in the copied cell properties state.
+						window.DAEXTLETAL.states.copiedCellProperties.data   = JSON.parse( data_json );
+						window.DAEXTLETAL.states.copiedCellProperties.source = source;
+
+						// If this task has been generated from a "Cut Cell Properties"
+						// operation remove the cell properties from the selected cells.
+						if (source === 'cut') {
+							window.DAEXTLETAL.utility.reset_cell_properties( options );
+						}
+
+					} catch (e) {
+
+						// Invalid JSON data.
+
+					}
+
+				}
+			);
+
+		},
+
+		/**
+		 * Reset the cell properties of the selected cells.
+		 *
+		 * @param options
+		 */
+		reset_cell_properties: function (options) {
+
+			'use strict';
+
+			/**
+			 * Reset the spreadsheet clipboard because after performing this method certain references to cell properties
+			 * might be lost.
+			 */
+			window.DAEXTLETAL.states.synthetic_clipboard = null;
+
+			// Prepare ajax request.
+			const data = {
+				'action': 'daextletal_reset_cell_properties',
+				'security': DAEXTLETAL_PARAMETERS.nonce,
+				'table_id': window.DAEXTLETAL.utility.get_table_id(),
+				'options': JSON.stringify( options ),
+			};
+
+			// Set ajax in synchronous mode.
+			jQuery.ajaxSetup( {async: false} );
+
+			// Send ajax request.
+			$.post(
+				DAEXTLETAL_PARAMETERS.ajax_url,
+				data,
+				function () {
+
+					'use strict';
+
+					window.DAEXTLETAL.utility.refresh_cell_properties_highlight();
+
+				}
+			);
+
+			// Set ajax in asynchronous mode.
+			jQuery.ajaxSetup( {async: true} );
 
 		}
 

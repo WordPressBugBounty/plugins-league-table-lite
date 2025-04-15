@@ -175,7 +175,7 @@ class Daextletal_Ajax {
 		if ( strlen( trim( stripslashes( $name ) ) ) < 1 || strlen( trim( stripslashes( $name ) ) ) > 255 ) {
 			$fields_with_errors_a[] = 'name';
 		}
-		if ( strlen( trim( stripslashes( $description ) ) ) < 1 || strlen( trim( stripslashes( $description ) ) ) > 255 ) {
+		if ( strlen( trim( stripslashes( $description ) ) ) > 255 ) {
 			$fields_with_errors_a[] = 'description';
 		}
 		if ( ! preg_match( $this->shared->digits_regex, $rows ) || intval( $rows, 10 ) < 1 || intval( $rows, 10 ) > 10000 ) {

@@ -1,0 +1,31 @@
+/**
+ * CSS for Backend.
+ */
+
+/* Block Style ------------------------------------------------------------------------------------------------------ */
+.daextletal-block-image{
+    width: 100% !important;
+    text-align: center;
+    color: #98a3b3 !important;
+    font-size: 18px !important;
+    background-image: url('../../admin/assets/img/plugin-logo.svg') !important;
+    background-repeat: no-repeat !important;
+    background-position: center 30px !important;
+    background-size: 68px !important;
+    height: 53px !important;
+    padding-top: 106px !important;
+    background-color: #fff !important;
+    border: 1px solid #d0d6dd !important;
+    border-radius: 6px !important;
+    border-top: 3px solid #d0d6dd !important;
+    line-height: 32px !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    box-sizing: content-box !important;
+}
+
+/* Block Inspector Style -------------------------------------------------------------------------------------------- */
+
+
+.panel-row-table .components-base-control{
+    width: 100%;
+}
