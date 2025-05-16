@@ -3,9 +3,9 @@ Contributors: DAEXT
 Tags: table, table builder, tables, datatable, standings
 Donate link: https://daext.com
 Requires at least: 4.6
-Tested up to: 6.8
+Tested up to: 6.8.1
 Requires PHP: 7.2
-Stable tag: 1.18
+Stable tag: 1.19
 License: GPLv3
 
 League Table is a table plugin that you can use to create sortable and responsive tables on your WordPress website.
@@ -156,6 +156,13 @@ With this procedure you will be able to perform a **Single Site Activation** in 
 3. Click on the **Activate** button (just below the name of the plugin)
 
 == Changelog ==
+
+= 1.19 =
+
+*May 16, 2025*
+
+* Fixed PHP notice caused by early use of translation functions.
+* Fixed JavaScript deprecation notices for back-end functionality.
 
 = 1.18 =
 
