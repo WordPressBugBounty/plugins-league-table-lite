@@ -912,46 +912,42 @@ class Daextletal_Menu_Elements {
 
 				// Delete the items.
 				global $wpdb;
-				$table_name = $wpdb->prefix . $this->shared->get( 'slug' ) . '_' . $this->db_table;
 
 				if ( count( $delete_id_deletable ) > 0 ) {
 
-					// Sanitize the db table name.
-					$table_name = sanitize_key( $table_name );
+					$deleted_items_count = 0;
 
-					// Sanitize the field name.
-					$primary_key_name = sanitize_key( $this->primary_key );
+					foreach ( $delete_id_deletable as $delete_id ) {
+						// Delete the item in the "_table" menu where the id field matches the current $delete_id.
+						$query_result_table = $wpdb->query(
+							$wpdb->prepare( "DELETE FROM {$wpdb->prefix}daextletal_table WHERE id = %d", $delete_id )
+						);
 
-					// phpcs:disable WordPress.DB.DirectDatabaseQuery
-					// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $variables are sanitized above.
-					// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared
-					$query_result = $wpdb->query(
-						"DELETE FROM $table_name WHERE $primary_key_name IN (" . implode( ',', $delete_id_deletable ) . ')'
-					);
-					// phpcs:enable
+						if ( isset( $query_result_table ) && false !== $query_result_table ) {
 
-				}
+							// Get the number of deleted items with $wpdb.
+							$deleted_items_count = $deleted_items_count + $wpdb->rows_affected;
 
-				if ( isset( $query_result ) && false !== $query_result ) {
+						}
 
-					// Get the number of deleted items with $wpdb.
-					$deleted_items_count = $wpdb->rows_affected;
+						// Delete the items in the "_data" db table where the table_id matches the current $delete_id.
+						$wpdb->query(
+							$wpdb->prepare( "DELETE FROM {$wpdb->prefix}daextletal_data WHERE table_id = %d", $delete_id )
+						);
 
-					$this->shared->save_dismissible_notice(
-						$deleted_items_count . ' ' . __( 'items have been successfully deleted.', 'league-table-lite' ),
-						'updated'
-					);
-
-				}
-
-				if ( count( $delete_id_non_deletable ) > 0 ) {
-
-					$this->shared->save_dismissible_notice(
-						__( 'The', 'league-table-lite' ) . ' ' . strtolower( $this->label_plural ) . ' ' . __( "with the following IDs are used in one or more automatic internal links and can't be deleted:", 'league-table-lite' ) . ' ' . implode( ', ', $delete_id_non_deletable ) . '.',
-						'error'
-					);
+						// Delete the items in the "_cell" db table where the table_id matches the current $delete_id.
+						$wpdb->query(
+							$wpdb->prepare( "DELETE FROM {$wpdb->prefix}daextletal_cell WHERE table_id = %d", $delete_id )
+						);
+					}
 
 				}
+
+				$this->shared->save_dismissible_notice(
+					$deleted_items_count . ' ' . __( 'items have been successfully deleted.', 'league-table-lite' ),
+					'updated'
+				);
+
 			}
 		}
 	}

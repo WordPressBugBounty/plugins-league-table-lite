@@ -141,7 +141,7 @@ class Daextletal_Tables_Menu_Elements extends Daextletal_Menu_Elements {
 						require_once $this->shared->get( 'dir' ) . '/admin/inc/class-daextletal-pagination.php';
 						$pag = new Daextletal_Pagination( $this->shared );
 						$pag->set_total_items( $total_items );// Set the total number of items.
-						$pag->set_record_per_page( 10 ); // Set records per page.
+						$pag->set_record_per_page( intval( get_option( $this->shared->get( 'slug' ) . '_items_per_page_tables_menu' ) ) ); // Set records per page.
 						$pag->set_target_page( 'admin.php?page=' . $this->shared->get( 'slug' ) . '-tables' );// Set target page.
 						$pag->set_current_page();// set the current page number from $_GET.
 

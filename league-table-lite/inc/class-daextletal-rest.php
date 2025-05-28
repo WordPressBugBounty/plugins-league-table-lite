@@ -149,6 +149,7 @@ class Daextletal_Rest {
 		$options['daextletal_load_google_font_1']          = $request->get_param( 'daextletal_load_google_font_1' ) !== null ? esc_url_raw( $request->get_param( 'daextletal_load_google_font_1' ) ) : null;
 		$options['daextletal_load_google_font_2']          = $request->get_param( 'daextletal_load_google_font_2' ) !== null ? esc_url_raw( $request->get_param( 'daextletal_load_google_font_2' ) ) : null;
 		$options['daextletal_max_execution_time']          = $request->get_param( 'daextletal_max_execution_time' ) !== null ? intval( $request->get_param( 'daextletal_max_execution_time' ), 10 ) : null;
+		$options['daextletal_items_per_page_tables_menu']  = $request->get_param( 'daextletal_items_per_page_tables_menu' ) !== null ? intval( $request->get_param( 'daextletal_items_per_page_tables_menu' ), 10 ) : null;
 		$options['daextletal_limit_shortcode_parsing']     = $request->get_param( 'daextletal_limit_shortcode_parsing' ) !== null ? intval( $request->get_param( 'daextletal_limit_shortcode_parsing' ), 10 ) : null;
 		$options['daextletal_verify_single_shortcode']     = $request->get_param( 'daextletal_verify_single_shortcode' ) !== null ? intval( $request->get_param( 'daextletal_verify_single_shortcode' ), 10 ) : null;
 		$options['daextletal_widget_text_shortcode']       = $request->get_param( 'daextletal_widget_text_shortcode' ) !== null ? intval( $request->get_param( 'daextletal_widget_text_shortcode' ), 10 ) : null;

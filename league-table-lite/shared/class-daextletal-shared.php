@@ -74,7 +74,7 @@ class Daextletal_Shared {
 	private function __construct() {
 
 		$this->data['slug'] = 'daextletal';
-		$this->data['ver']  = '1.19';
+		$this->data['ver']  = '1.20';
 		$this->data['dir']  = substr( plugin_dir_path( __FILE__ ), 0, -7 );
 		$this->data['url']  = substr( plugin_dir_url( __FILE__ ), 0, -7 );
 
@@ -97,6 +97,7 @@ class Daextletal_Shared {
 			$this->get( 'slug' ) . '_load_google_font_1' => 'https://fonts.googleapis.com/css2?family=Open+Sans&display=swap',
 			$this->get( 'slug' ) . '_load_google_font_2' => '',
 			$this->get( 'slug' ) . '_max_execution_time' => '300',
+			$this->get( 'slug' ) . '_items_per_page_tables_menu' => '10',
 			$this->get( 'slug' ) . '_limit_shortcode_parsing' => '1',
 			$this->get( 'slug' ) . '_verify_single_shortcode' => '1',
 			$this->get( 'slug' ) . '_widget_text_shortcode' => '0',
@@ -1843,6 +1844,19 @@ class Daextletal_Shared {
 								'rangeMin'  => 1,
 								'rangeMax'  => 3600,
 								'rangeStep' => 1,
+							),
+							array(
+								'name'      => 'daextletal_items_per_page_tables_menu',
+								'label'     => __( 'Items per Page (Tables Menu)', 'league-table-lite' ),
+								'type'      => 'range',
+								'tooltip'   => __(
+									'This options determines the number of elements per page displayed in the "Tables" menu.',
+									'league-table-lite'
+								),
+								'help'      => __( 'Set the number of elements per page displayed in the "Tables" menu.', 'league-table-lite' ),
+								'rangeMin'  => 10,
+								'rangeMax'  => 100,
+								'rangeStep' => 10,
 							),
 							array(
 								'name'    => 'daextletal_limit_shortcode_parsing',

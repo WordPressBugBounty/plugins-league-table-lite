@@ -5,7 +5,7 @@ Donate link: https://daext.com
 Requires at least: 4.6
 Tested up to: 6.8.1
 Requires PHP: 7.2
-Stable tag: 1.19
+Stable tag: 1.20
 License: GPLv3
 
 League Table is a table plugin that you can use to create sortable and responsive tables on your WordPress website.
@@ -156,6 +156,13 @@ With this procedure you will be able to perform a **Single Site Activation** in 
 3. Click on the **Activate** button (just below the name of the plugin)
 
 == Changelog ==
+
+= 1.20 =
+
+*May 28, 2025*
+
+* Deleting multiple tables from the Tables menu now correctly removes the related records from subsidiary database tables.
+* You can now define how many items are displayed per page in the Tables menu via a new setting.
 
 = 1.19 =
 
