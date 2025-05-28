@@ -613,7 +613,7 @@ class Daextletal_Admin {
 	 */
 	public static function ac_initialize_options() {
 
-		if ( intval( get_option( 'daextletal_options_version' ), 10 ) < 2 ) {
+		if ( intval( get_option( 'daextletal_options_version' ), 10 ) < 3 ) {
 
 			// Assign an instance of Daextletal_Shared.
 			$shared = Daextletal_Shared::get_instance();
@@ -623,7 +623,7 @@ class Daextletal_Admin {
 			}
 
 			// Update options version.
-			update_option( 'daextletal_options_version', '2' );
+			update_option( 'daextletal_options_version', '3' );
 
 		}
 

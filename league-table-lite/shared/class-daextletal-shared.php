@@ -74,7 +74,7 @@ class Daextletal_Shared {
 	private function __construct() {
 
 		$this->data['slug'] = 'daextletal';
-		$this->data['ver']  = '1.20';
+		$this->data['ver']  = '1.21';
 		$this->data['dir']  = substr( plugin_dir_path( __FILE__ ), 0, -7 );
 		$this->data['url']  = substr( plugin_dir_url( __FILE__ ), 0, -7 );
 
@@ -85,7 +85,7 @@ class Daextletal_Shared {
 			$this->get( 'slug' ) . '_database_version'   => '0',
 
 			// Options Version ----------------------------------------------------------------------------------------.
-			$this->get( 'slug' ) . '_options_version'    => '2',
+			$this->get( 'slug' ) . '_options_version'    => '3',
 
 			// General ------------------------------------------------------------------------------------------------.
 			$this->get( 'slug' ) . '_tables_menu_capability' => 'manage_options',
