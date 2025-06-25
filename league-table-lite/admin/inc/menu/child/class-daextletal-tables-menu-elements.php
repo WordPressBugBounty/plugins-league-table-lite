@@ -226,7 +226,7 @@ class Daextletal_Tables_Menu_Elements extends Daextletal_Menu_Elements {
 												</div>
 											</td>
 											<td><?php echo strlen( trim( $result['description'] ) ) > 0 ? esc_html( stripslashes( $result['description'] ) ) : esc_html__( 'N/A', 'league-table-lite' ); ?></td>
-											<td><?php echo '[lt id="' . intval( $result['id'], 10 ) . '"]'; ?></td>
+											<td><?php echo '[ltl id="' . intval( $result['id'], 10 ) . '"]'; ?></td>
 										</tr>
 									<?php endforeach; ?>
 

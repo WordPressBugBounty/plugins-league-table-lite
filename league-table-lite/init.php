@@ -2,7 +2,7 @@
 /**
  * Plugin Name: League Table
  * Description: Generates tables in your WordPress blog. (Lite version)
- * Version: 1.21
+ * Version: 1.22
  * Author: DAEXT
  * Author URI: https://daext.com
  * Text Domain: league-table-lite
